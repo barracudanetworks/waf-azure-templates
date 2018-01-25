@@ -10,7 +10,6 @@ The Barracuda Web Application Firewall for Azure is a scalable security solution
 
 ![alt](https://www.barracuda.com/assets/img/sections/programs/azure/img_app-security_diagram2.png)
 
-# We are maintaining a separate GitHub Repo for Microsoft Azure related content. You can access it here: https://github.com/barracudanetworks/waf-azure-templates
 
 
 
