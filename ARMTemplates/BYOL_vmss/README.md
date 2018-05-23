@@ -1,3 +1,7 @@
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fbarracudanetworks%2Fwaf-azure-templates%2Fblob%2Fmaster%2FARMTemplates%2FBYOL_vmss%2FmainTemplate.json">
+       <img src="http://azuredeploy.net/deploybutton.png"/></a>
+       
+       
 # Deployment Steps
 
 For information on deploying this template, please follow this link: https://campus.barracuda.com/product/webapplicationfirewall/doc/75694304/deploying-the-barracuda-cloudgen-waf-virtual-machine-scale-sets-vmss-byol-instance-in-microsoft-azure/
