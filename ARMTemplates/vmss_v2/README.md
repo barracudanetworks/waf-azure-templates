@@ -1,9 +1,8 @@
-<img src ="https://www.barracuda.com/assets/img/layout/logo/logo.svg" width="200"/>
-
-# Deploying the Barracuda Web Application Firewall VM Scale Set(PAYG) in Azure
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fbarracudanetworks%2Fwaf-azure-templates%2Fmaster%2FARMTemplates%2Fvmss_v2%2FmainTemplate.json">
-       <img src="http://azuredeploy.net/deploybutton.png"/></a>
+<img src="http://azuredeploy.net/deploybutton.png"/></a>
+       
+# Deploying the Barracuda Web Application Firewall VM Scale Set(PAYG) in Azure
        
 ## Introduction
 
@@ -40,4 +39,4 @@ Refer to Azure LB NAT rules to find out MGMT access Ports. MGMT access are gener
 ## Note
    BYOL based Barracuda WAF VMSS is not yet supported. This will be made available soon.
 
-##### DISCLAIMER: ALL OF THE SOURCE CODE ON THIS REPOSITORY IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL BARRACUDA BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOURCE CODE. #####
+DISCLAIMER: ALL OF THE SOURCE CODE ON THIS REPOSITORY IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL BARRACUDA BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOURCE CODE. #####
