@@ -2,6 +2,9 @@
 
 # Deploying the Barracuda Web Application Firewall VM Scale Set(PAYG) in Azure
 
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fbarracudanetworks%2Fwaf-azure-templates%2Fmaster%2FARMTemplates%2Fvmss_v2%2FmainTemplate.json">
+       <img src="http://azuredeploy.net/deploybutton.png"/></a>
+       
 ## Introduction
 
 This solution uses an Microsoft ARM template to launch the deployment of Barracuda WAF(PAYG) VM Scale Set. This templates creates and configures a new Azure load balancer in the resource group. Traffic flows from the Azure load balancer to the Barracuda WAF cluster and then to the backend application servers. The Barracuda WAF are configured in single-NIC and single-IP mode. As traffic increases or decreases, the number of Barracuda WAF instances automatically increases or decreases accordingly. Scaling rules are currently based on *CPU percentage*, *network out* and *network in* throughput.
