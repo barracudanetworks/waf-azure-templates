@@ -1,3 +1,6 @@
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fbarracudanetworks%2Fwaf-azure-templates%2Fmaster%2FARMTemplates%2Fconsolidated_VMSS_template%2FmainTemplate.json" target="_blank">
+<img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
 
 ### Introduction
 
