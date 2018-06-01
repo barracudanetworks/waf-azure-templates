@@ -3,3 +3,9 @@
 ################################################################################
 
 /.vs/config
+/.vs/waf-azure-templates/v15
+/.vs/slnx.sqlite
+/.vs/tasks.vs.json
+/.vs/VSWorkspaceState.json
+/ARMTemplates/contrib/azuredeploy.json
+/ARMTemplates/contrib/README.md
