@@ -15,7 +15,7 @@
       "SolutionVersion": "1.0",
       "SolutionPublisher": "Barracuda Networks",
       "Name": "Barracuda Application Attack Statistics",
-      "solutionName": "[concat('Barracuda Application Attack Statistics', '(', parameters('workspaceName'), ')')]",
+      "solutionName": "[concat('Barracuda Application Attack Statistics', '[', parameters('workspaceName'), ']')]",
       "ViewAuthor": "Barracuda Web Application Firewall",
       "ViewDescription": "Application Attack Statistics",
       "ViewName": "Barracuda Application Attack Statistics Dashboard"
@@ -24,7 +24,7 @@
       "SolutionVersion": "1.0",
       "SolutionPublisher": "Barracuda Networks",
       "Name": "Barracuda Application Performance Statistics",
-      "solutionName": "[concat('Barracuda Application Performance Statistics', '(', parameters('workspaceName'), ')')]",
+      "solutionName": "[concat('Barracuda Application Performance Statistics', '[', parameters('workspaceName'), ']')]",
       "ViewAuthor": "Barracuda Web Application Firewall",
       "ViewDescription": "Barracuda Application Performance Statistics",
       "ViewName": "Barracuda Application Performance Dashboard"
@@ -33,7 +33,7 @@
       "SolutionVersion": "1.0",
       "SolutionPublisher": "Barracuda Networks",
       "Name": "Barracuda WAF Audit Logs Solution",
-      "solutionName": "[concat('Barracuda WAF Audit Logs Solution', '(', parameters('workspaceName'), ')')]",
+      "solutionName": "[concat('Barracuda WAF Audit Logs Solution', '[', parameters('workspaceName'), ']')]",
       "ViewAuthor": "Barracuda Web Application Firewall",
       "ViewDescription": "Barracuda WAF Audit Logs Analysis",
       "ViewName": "Barracuda WAF Audit Logs Dashboard"
@@ -42,7 +42,7 @@
       "SolutionVersion": "1.0",
       "SolutionPublisher": "Barracuda Networks",
       "Name": "Barracuda WAF Monitoring Solution",
-      "solutionName": "[concat('Barracuda WAF Monitoring Solution', '(', parameters('workspaceName'), ')')]",
+      "solutionName": "[concat('Barracuda WAF Monitoring Solution', '[', parameters('workspaceName'), ']')]",
       "ViewAuthor": "Barracuda Web Application Firewall",
       "ViewDescription": "Barracuda WAF Monitoring Analysis",
       "ViewName": "Barracuda WAF Monitoring Dashboard"
