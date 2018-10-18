@@ -8,27 +8,6 @@
         "description": "Create new or use an existing Log Analytic Workspace"
       }
     },
-
-    "workspaceRegionId": {
-      "type": "string",
-      "metadata": {
-        "description": "Specify the Azure Region for your new or existing OMS workspace"
-      }
-    },
-	"accountName": {
-            "type": "string"
-    },
-	"regionId": {
-      "type": "string",
-      "allowedValues": [
-        "East US 2",
-        "West Europe",
-        "Southeast Asia"
-      ],
-      "metadata": {
-            "description": "Region for Azure Automation account"
-      }
-    },
 	"pricingTier": {
       "type": "string",
       "allowedValues": [
@@ -85,7 +64,7 @@
       "apiVersion": "2015-11-01-preview",
       "type": "Microsoft.OperationalInsights/workspaces",
       "name": "[parameters('workspaceName')]",
-      "location": "[parameters('workspaceRegionId')]",
+      "location": "[resourceGroup().location]",
       "properties": {
         "sku": {
           "Name": "[parameters('pricingTier')]"
@@ -96,7 +75,7 @@
 	    "apiVersion": "[variables('LogAnalyticsApiVersion')]",
 	    "name": "[concat(parameters('workspaceName'), '/', variables('App_Attack_view').Name)]",
 	    "type": "Microsoft.OperationalInsights/workspaces/views",
-	    "location": "[parameters('workspaceRegionId')]",
+	    "location": "[resourceGroup().location]",
 	    "dependson": [
 		    "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]"
 		],
@@ -692,7 +671,7 @@
 	    "apiVersion": "[variables('LogAnalyticsApiVersion')]",
 	    "name": "[concat(parameters('workspaceName'), '/', variables('App_performance_view').Name)]",
 	    "type": "Microsoft.OperationalInsights/workspaces/views",
-	    "location": "[parameters('workspaceRegionId')]",
+	    "location": "[resourceGroup().location]",
 	    "dependson": [
 		    "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]"
 		],
@@ -1242,7 +1221,7 @@
 	    "apiVersion": "[variables('LogAnalyticsApiVersion')]",
 	    "name": "[concat(parameters('workspaceName'), '/', variables('Audit_logs_view').Name)]",
 	    "type": "Microsoft.OperationalInsights/workspaces/views",
-	    "location": "[parameters('workspaceRegionId')]",
+	    "location": "[resourceGroup().location]",
 	    "dependson": [
 		    "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]"
 		],
@@ -1516,7 +1495,7 @@
 	    "apiVersion": "[variables('LogAnalyticsApiVersion')]",
 	    "name": "[concat(parameters('workspaceName'), '/', variables('Barracuda_perf_view').Name)]",
 	    "type": "Microsoft.OperationalInsights/workspaces/views",
-	    "location": "[parameters('workspaceRegionId')]",
+	    "location": "[resourceGroup().location]",
 	    "dependson": [
 		    "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]"
 		],
@@ -2129,7 +2108,7 @@
             "name": "[variables('App_Attack_view').solutionName]",
             "type": "Microsoft.OperationsManagement/solutions",
             "apiVersion": "2015-11-01-preview",
-            "location": "[parameters('workspaceRegionId')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]",
                 "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'), '/views/', variables('App_Attack_view').Name)]"
@@ -2152,7 +2131,7 @@
             "name": "[variables('App_performance_view').solutionName]",
             "type": "Microsoft.OperationsManagement/solutions",
             "apiVersion": "2015-11-01-preview",
-            "location": "[parameters('workspaceRegionId')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]",
                 "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'), '/views/', variables('App_performance_view').Name)]"
@@ -2175,7 +2154,7 @@
             "name": "[variables('Audit_logs_view').solutionName]",
             "type": "Microsoft.OperationsManagement/solutions",
             "apiVersion": "2015-11-01-preview",
-            "location": "[parameters('workspaceRegionId')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]",
                 "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'), '/views/', variables('Audit_logs_view').Name)]"
@@ -2198,7 +2177,7 @@
             "name": "[variables('Barracuda_perf_view').solutionName]",
             "type": "Microsoft.OperationsManagement/solutions",
             "apiVersion": "2015-11-01-preview",
-            "location": "[parameters('workspaceRegionId')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]",
                 "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'), '/views/', variables('Barracuda_perf_view').Name)]"
