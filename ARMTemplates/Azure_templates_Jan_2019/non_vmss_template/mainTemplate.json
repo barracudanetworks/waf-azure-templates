@@ -119,7 +119,7 @@
                                 "description": "Subnet prefix of the network for Barracuda VM."
                         }
                 },
-		"networkInterfaceType": {
+		"Requires Multi NIC": {
 			"type": "bool",
 			"allowedValues": [
 				false,
@@ -127,7 +127,7 @@
 			],
 			"defaultValue": false,
 			"metadata": {
-				"description": "Select wheter you want a single NIC or multi NIC machine"
+				"description": "Select wheter you want a single NIC (select false) or multi NIC machine (select true)"
 			}
 		},
 		"subnetName": {
