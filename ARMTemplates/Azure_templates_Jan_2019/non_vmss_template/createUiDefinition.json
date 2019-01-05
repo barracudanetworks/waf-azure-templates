@@ -1,0 +1,322 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+  "handler": "Microsoft.Compute.MultiVm",
+  "version": "0.1.2-preview",
+  "parameters": {
+    "basics": [
+      {
+        "name": "wafvmname",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Barracuda CloudGen WAF Instance Host Name",
+        "toolTip": "Provide host name for the newly created instance of Barracuda Web Application Firewall",
+        "defaultValue": "bwaf",
+        "constraints": {
+          "required": true,
+          "regex": "^[A-Za-z0-9]{1,15}$",
+          "validationMessage": "Only alphanumeric characters are allowed, and the value must be 1 to 15 characters."
+        }
+      },
+      {
+        "name": "Password",
+        "type": "Microsoft.Common.PasswordBox",
+        "label": {
+          "password": "Password",
+          "confirmPassword": "Confirm password"
+        },
+        "toolTip": "Set the password for Barracuda CloudGen WAF Admin UI",
+        "constraints": {
+          "required": true,
+          "regex": "^(?:(?=.*[a-z])(?:(?=.*[A-Z])(?=.*[\\d\\W])|(?=.*\\W)(?=.*\\d))|(?=.*\\W)(?=.*[A-Z])(?=.*\\d)).{12,72}$",
+          "validationMessage": "Your admin password should be at least 12 characters long"
+        },
+        "options": {
+          "hideConfirmation": false
+        }
+      },
+      {
+        "name": "licenseType",
+        "type": "Microsoft.Common.DropDown",
+        "label": "Billing Method",
+        "defaultValue": "Bring your own License (BYoL)",
+        "toolTip": "Select the billing method for this deployment. To use BYoL, you will have to contact Barracuda Netwroks for a license key",
+        "constraints": {
+          "required": true,
+          "allowedValues": [
+            {
+              "label": "Bring your own License (BYoL)",
+              "value": "BYOL"
+            },
+            {
+              "label": "Pay as You Go (Hourly Billing)",
+              "value": "PAYG"
+            }
+          ]
+        }
+      },
+      {
+        "name": "firmwareVersion",
+        "type": "Microsoft.Common.DropDown",
+        "label": "Firmware Version",
+        "defaultValue": "LATEST",
+        "toolTip": "Select the firmware version for the instance",
+        "constraints": {
+          "required": true,
+          "allowedValues": [
+            {
+              "label": "9.1.101501",
+              "value": "9.1.101501"
+            },
+            {
+              "label": "9.1.101601",
+              "value": "9.1.101601"
+            },
+            {
+              "label": "LATEST",
+              "value": "latest"
+            }
+          ]
+        }
+      },
+      {
+        "name": "isMultinic",
+        "type": "Microsoft.Common.DropDown",
+        "label": "Number of interfaces for the instance",
+        "defaultValue": "Single NIC",
+        "toolTip": "Select number of network interfaces for your Barracuda CloudGen WAF instance. Selecting the Multi-Nic option, will create an instance with a WAN and a LAN interface.",
+        "constraints": {
+          "required": true,
+          "allowedValues": [
+            {  
+              "label": "Single NIC",
+              "value": false
+            },
+            {
+              "label": "Multi NIC",
+              "value": true
+            }
+          ]
+        }
+      }
+    ],
+    "steps": [
+      {
+        "name": "DeployConfig",
+        "label": "Deployment Options",
+        "subLabel": {
+          "preValidation": "Define the various deployment options, including VM size and storage",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "Deployment Options",
+        "elements": [
+          {
+            "name": "standardVmSize",
+            "type": "Microsoft.Compute.SizeSelector",
+            "label": "Barracuda CloudGen WAF Instance Size",
+            "toolTip": "Choose the instance size you require for your deployment",
+            "recommendedSizes": [
+              "Standard_D2",
+              "Standard_D3",
+              "Standard_D2_v2",
+              "Standard_D3_v2"
+            ],
+            "constraints": {
+              "allowedSizes": [
+                "Standard_D2",
+                "Standard_D1",
+                "Standard_D3",
+                "Standard_D4",
+                "Standard_D1_v2",
+                "Standard_D2_v2",
+                "Standard_D3_v2",
+                "Standard_D4_v2"
+              ]
+            },
+            "osPlatform": "Linux",
+            "imageReference": {
+              "publisher": "barracudanetworks",
+              "offer": "waf",
+              "sku": "byol"
+            },
+            "count": 1,
+            "visible": true
+          },
+          {
+            "name": "storageElement",
+            "type": "Microsoft.Storage.StorageAccountSelector",
+            "label": "Storage Account that will be used to store data for this deployment",
+            "toolTip": "Choose Standard_LRS for Standard VM Selections",
+            "defaultValue": {
+              "type": "Standard_LRS"
+            },
+            "constraints": {
+              "allowedTypes": [
+                "Standard_LRS"
+              ]
+            },
+            "options": {
+              "hideExisting": false
+            }
+          },
+          {
+            "name": "vnetSpec",
+            "type": "Microsoft.Network.VirtualNetworkCombo",
+            "required": false,
+            "visible": "[not(basics('isMultinic'))]",
+            "label": {
+              "virtualNetwork": "Virtual network to be created for this deployment",
+              "subnets": "Subnets to be used in this deployment"
+            },
+            "toolTip": {
+              "virtualNetwork": "Virtual Network Name",
+              "subnets": "Create a separate for the Barracuda CloudGen WAF"
+            },
+	    "defaultValue": {
+	      "name": "wafVnet",
+	      "addressPrefixSize": "/16"
+	    },
+            "options": {
+              "hideExisting": false
+            },
+            "constraints": {
+              "minAddressPrefixSize": "/28"
+            },
+            "subnets": {
+              "subnet0": {
+                "label": "WAN NIC",
+                "defaultValue": {
+                  "name": "[concat(basics('wafvmname'), '-wan-nic')]",
+		  "addressPrefixSize": "/24" 
+                },
+                "constraints": {
+                  "minAddressPrefixSize": "/28",
+                  "minAddressCount": 1,
+                  "requireContiguousAddresses": true
+                }
+              }
+            }
+          },
+          {
+            "name": "vnetSpec1",
+            "type": "Microsoft.Network.VirtualNetworkCombo",
+            "required": false,
+            "visible": "[basics('isMultinic')]",
+            "label": {
+              "virtualNetwork": "Virtual Network",
+              "subnets": "Subnet"
+            },
+            "toolTip": {
+              "virtualNetwork": "Virtual Network Name",
+              "subnets": "Create a separate for the Barracuda CloudGen WAF"
+            },
+            "defaultValue": {
+              "name": "wafVnet",
+              "addressPrefixSize": "/16"
+            },
+            "options": {
+              "hideExisting": false
+            },
+            "constraints": {
+              "minAddressPrefixSize": "/28"
+            },
+            "subnets": {
+              "subnet0": {
+                "label": "WAN NIC",
+                "defaultValue": {
+                  "name": "[concat(basics('wafvmname'), '-wan-nic')]",
+		  "addressPrefixSize": "/24"
+                },
+                "constraints": {
+                  "minAddressPrefixSize": "/28",
+                  "minAddressCount": 1,
+                  "requireContiguousAddresses": true
+                }
+              },
+              "subnet1": {
+                "label": "LAN NIC",
+                "defaultValue": {
+                  "name": "[concat(basics('wafvmname'), '-lan-nic')]",
+		  "addressPrefixSize": "/24"
+                },
+                "constraints": {
+                  "minAddressPrefixSize": "/28",
+                  "minAddressCount": 1,
+                  "requireContiguousAddresses": true
+                }
+              }
+            } 
+          },
+          {
+            "name": "dnsSpec",
+            "type": "Microsoft.Network.PublicIpAddressCombo",
+            "label": {
+              "publicIpAddress": "New Public IP address name",
+              "domainNameLabel": "Domain name for accessing the Barracuda CloudGen WAF"
+            },
+            "toolTip": {
+              "publicIpAddress": "Only new public IP is currently supported",
+              "domainNameLabel": "Barracuda CloudGen WAF UI will be accessible from port 8000 or 8443 of this domain"
+            },
+            "defaultValue": {
+              "publicIpAddressName": "wafpip",
+              "domainNameLabel": "change-me-to-be-unique"
+            },
+            "constraints": {
+              "required": {
+                "domainNameLabel": true
+              }
+            },
+            "options": {
+              "hideDomainNameLabel": false,
+              "hideNone": true,
+              "hideExisting": true
+            }
+          },
+          {
+            "name": "bootDiagnostics",
+            "type": "Microsoft.Common.OptionsGroup",
+            "label": "Boot Diagnostics",
+            "defaultValue": "Disabled",
+            "toolTip": "Capture serial console output and screenshots of the virtual machine running on a host to help diagnose startup issues. This will use storage account configured above.",
+            "constraints": {
+              "allowedValues": [
+                {
+                   "label": "Enabled",
+                   "value": true  
+                },
+                {
+                   "label": "Disabled",
+                   "value": false
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "outputs": {
+      "location": "[location()]",
+      "vmName": "[basics('wafvmname')]",
+      "deploymentType": "[basics('licenseType')]",
+      "firmware": "[basics('firmwareVersion')]",
+      "networkInterfaceType": "[basics('isMultinic')]",
+      "storageAccountName": "[steps( 'DeployConfig' ).storageElement.name]",
+      "storageAccountType": "[steps('DeployConfig').storageElement.type]",
+      "vmSize": "[steps('DeployConfig').standardVmSize]",
+      "vNETName": "[steps('DeployConfig').vnetSpec.name]",
+      "vNET1Name": "[steps('DeployConfig').vnetSpec1.name]",
+      "subnetName": "[steps('DeployConfig').vnetSpec.subnets.subnet0.name]",
+      "subnet1Name": "[steps('DeployConfig').vnetSpec1.subnets.subnet0.name]",
+      "subnet2Name": "[steps('DeployConfig').vnetSpec1.subnets.subnet1.name]",
+      "dnsNameForIP": "[steps('DeployConfig').dnsSpec.domainNameLabel]",
+      "publicIPAddressName": "[steps('DeployConfig').dnsSpec.name]",
+      "adminPassword": "[basics('Password')]",
+      "subnetPrefix": "[steps('DeployConfig').vnetSpec.subnets.subnet0.addressPrefix]",
+      "subnet1Prefix": "[steps('DeployConfig').vnetSpec1.subnets.subnet0.addressPrefix]",
+      "subnet2Prefix": "[steps('DeployConfig').vnetSpec1.subnets.subnet1.addressPrefix]",
+      "addressPrefix": "[steps('DeployConfig').vnetSpec1.addressPrefix]",
+      "bootDiag": "[steps('DeployConfig').bootDiagnostics]"
+    }
+  }
+}
+
+

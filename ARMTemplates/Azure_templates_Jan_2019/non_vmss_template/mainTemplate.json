@@ -1,0 +1,403 @@
+{
+        "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"adminPassword": {
+			"type": "securestring"
+		},
+		"location": {
+			"type": "string",
+			"metadata": {
+				"description": "Location to deploy"
+			}
+		},
+		"storageAccountName": {
+			"type": "string",
+			"metadata": {
+				"description": "Unique name for the Storage Account where the machines disks will be placed."
+			}
+		},
+		"storageAccountType": {
+			"defaultValue": "Standard_LRS",
+			"type": "string",
+			"metadata": {
+				"description": "Type of Storage Account chosen"
+			}
+		},
+		"storageAccountNewOrExisting": {
+			"type": "string",
+			"defaultValue": "new",
+			"allowedValues": [
+				"new",
+				"existing"
+			],
+			"metadata": {
+				"description": "Storage Account chosen new or existing"
+			}
+		},
+		"storageAccountResourceGroup": {
+			"type": "string",
+			"defaultValue": "[resourceGroup().name]",
+			"metadata": {
+				"description": "Resource group of existing storage account(if existing is chosen)"
+			}
+		},
+		"deploymentType": {
+			"type": "string",
+			"allowedValues": [
+				"BYOL",
+				"PAYG"
+			],
+			"defaultValue": "BYOL",
+			"metadata": {
+				"description": "type of deployment"
+			}
+		},
+                "firmware": {
+                        "type": "string",
+                        "allowedValues": [
+                                 "9.1.101501",
+                                 "9.1.101601",
+                                 "latest"
+                        ],
+                        "defaultValue": "latest",
+                        "metadata": {
+                                "description": "Firmware version"
+                        }
+                },
+		"vmName": {
+			"type": "string"
+		},
+		"dnsNameForIP": {
+			"type": "string",
+			"metadata": {
+				"description": "Unique DNS Name for the Public IP used to access the WAF."
+			}
+		},
+		"publicIPAddressName": {
+			"type": "string"
+		},
+		"vNETNewOrExisting": {
+			"type": "string",
+			"defaultValue": "new",
+			"allowedValues": [
+				"new",
+				"existing"
+			],
+			"metadata": {
+				"description": "Storage Account chosen new or existing"
+			}
+		},
+		"vNETResourceGroup": {
+			"type": "string",
+			"defaultValue": "[resourceGroup().name]",
+			"metadata": {
+				"description": "VNET Resource Group Name(if an existing VNET is used)."
+			}
+		},
+		"vNETName": {
+			"type": "string"
+		},
+		"addressPrefix": {
+			"defaultValue": "10.0.0.0/16",
+			"type": "string",
+			"metadata": {
+				"description": "Address prefix of the network for Barracuda VM."
+			}
+		},
+		"subnetPrefix": {
+			"defaultValue": "10.0.0.0/24",
+			"type": "string",
+			"metadata": {
+				"description": "Subnet prefix of the network for Barracuda VM."
+			}
+		},
+                "subnet2Prefix": {
+                        "defaultValue": "10.0.1.0/24",
+                        "type": "string",
+                        "metadata": {
+                                "description": "Subnet prefix of the network for Barracuda VM."
+                        }
+                },
+		"networkInterfaceType": {
+			"type": "bool",
+			"allowedValues": [
+				false,
+				true
+			],
+			"defaultValue": false,
+			"metadata": {
+				"description": "Select wheter you want a single NIC or multi NIC machine"
+			}
+		},
+		"subnetName": {
+			"type": "string"
+		},
+		"subnet2Name": {
+			"type": "string",
+                        "defaultValue": "null"
+		},
+		"vmSize": {
+			"type": "string",
+			"metadata": {
+				"description": "Size of instances"
+			}
+		},
+                "bootDiag": {
+                       "type": "bool",
+                       "defaultValue": true,
+                       "metadata": {
+                               "description": "Enable boot diagnostics for the vmss instances."
+                       }
+                }
+	},
+	"variables": {
+		"nicName0Prefix": "[concat(parameters('vmName'),'NIC')]",
+		"nicName1Prefix": "[concat(parameters('vmName'),'-LAN_NIC')]",
+		"nsgVar": "[concat(parameters('vmName'),'NSG')]",
+		"publicIPAddressType": "Static",
+		"vnetID": "[concat(resourceGroup().id,'/providers/Microsoft.Network/virtualNetworks/',parameters('vNETName'))]",
+		"subnet0Ref": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]",
+		"subnet1Ref": "[concat(variables('vnetID'),'/subnets/',parameters('subnet2Name'))]",
+		"SeperatedValues": "[split(parameters('subnetPrefix'),'.')]",
+		"storageAccountTier": "[replace(parameters('storageAccountType'),'_LRS','')]",
+		"barracudaNetworksTags": {
+			"type": "object",
+			"provider": "3285C15D-A16F-479C-8886-67042BCB03A9"
+		},
+		"publicIp1": {
+			"id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]"
+		},
+		"vnetIp1": {
+			"id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgVar'))]"
+		},
+		"netPro0": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName0Prefix'))]",
+		"netPro1": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName1Prefix'))]",
+		"osDiskName": "[concat(parameters('vmName'), '-', 'wafosdisk', '-', uniquestring(parameters('vmName')))]",
+                "byolGuid": "14d7ae0f-e0bd-413c-8bb4-adbdca0e3bdd",
+                "hourlyGuid": "a81f7548-5d6a-4a96-8366-2b6b2dc93ff6"
+	},
+	"resources": [{
+			"apiVersion": "2016-01-01",
+			"type": "Microsoft.Storage/storageAccounts",
+			"name": "[parameters('storageAccountName')]",
+			"location": "[parameters('location')]",
+			"tags": {
+				"displayName": "wafStorageName",
+				"provider": "[variables('barracudaNetworksTags').provider]"
+			},
+			"kind": "Storage",
+			"sku": {
+				"name": "[parameters('storageAccountType')]",
+				"tier": "[variables('storageAccountTier')]"
+			}
+		},
+		{
+			"apiVersion": "2016-06-01",
+			"type": "Microsoft.Network/virtualNetworks",
+			"name": "[parameters('vNETName')]",
+			"location": "[parameters('location')]",
+			"tags": {
+				"provider": "[variables('barracudaNetworksTags').provider]"
+			},
+			"dependsOn": [
+				"[concat('Microsoft.Network/networkSecurityGroups/', variables('nsgVar'))]"
+			],
+			"properties": {
+				"addressSpace": {
+					"addressPrefixes": [
+						"[parameters('addressPrefix')]"
+					]
+				},
+				"copy": [{
+					"name": "subnets",
+					"count": "[if(equals(parameters('networkInterfaceType'),bool('false')),1, 2)]",
+					"input": {
+						"name": "[if(equals(copyIndex('subnets'),0),parameters('subnetName'), parameters('subnet2Name'))]",
+						"properties": {
+							"addressPrefix": "[concat(variables('SeperatedValues')[0],'.',variables('SeperatedValues')[1],'.', copyIndex('subnets'),'.0/24')]",
+							"networkSecurityGroup": "[if(equals(copyIndex('subnets'),0),variables('vnetIp1'), json('null'))]"
+						}
+					}
+				}]
+			}
+		},
+		{
+			"apiVersion": "2016-06-01",
+			"type": "Microsoft.Network/publicIPAddresses",
+			"name": "[parameters('publicIPAddressName')]",
+			"location": "[parameters('location')]",
+			"tags": {
+				"displayName": "wafPublicIPAddress",
+				"provider": "[variables('barracudaNetworksTags').provider]"
+			},
+			"properties": {
+				"publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+				"dnsSettings": {
+					"domainNameLabel": "[parameters('dnsNameForIP')]"
+				}
+			}
+		},
+		{
+			"apiVersion": "2015-06-15",
+			"type": "Microsoft.Network/networkSecurityGroups",
+			"name": "[variables('nsgVar')]",
+			"location": "[parameters('location')]",
+			"tags": {
+				"displayName": "NSG-WAF",
+				"provider": "[variables('barracudaNetworksTags').provider]"
+			},
+			"properties": {
+				"securityRules": [{
+						"name": "http-mgmt",
+						"properties": {
+							"description": "MGMT_-_HTTP",
+							"protocol": "Tcp",
+							"sourcePortRange": "*",
+							"destinationPortRange": "8000",
+							"sourceAddressPrefix": "Internet",
+							"destinationAddressPrefix": "*",
+							"access": "Allow",
+							"priority": 1010,
+							"direction": "Inbound"
+						}
+					},
+					{
+						"name": "https",
+						"properties": {
+							"description": "HTTPS",
+							"protocol": "Tcp",
+							"sourcePortRange": "*",
+							"destinationPortRange": "443",
+							"sourceAddressPrefix": "Internet",
+							"destinationAddressPrefix": "*",
+							"access": "Allow",
+							"priority": 1020,
+							"direction": "Inbound"
+						}
+					},
+					{
+						"name": "https-mgmt",
+						"properties": {
+							"description": "MGMT_-_HTTPS",
+							"protocol": "Tcp",
+							"sourcePortRange": "*",
+							"destinationPortRange": "8443",
+							"sourceAddressPrefix": "Internet",
+							"destinationAddressPrefix": "*",
+							"access": "Allow",
+							"priority": 1030,
+							"direction": "Inbound"
+						}
+					}
+				]
+			}
+		},
+		{
+			"apiVersion": "2016-06-01",
+			"copy": {
+				"name": "nicloop",
+				"count": "[if(equals(parameters('networkInterfaceType'),bool('false')),1, 2)]"
+			},
+			"type": "Microsoft.Network/networkInterfaces",
+			"name": "[if(equals(copyIndex(),0),variables('nicName0Prefix'), variables('nicName1Prefix'))]",
+			"location": "[parameters('location')]",
+			"tags": {
+				"provider": "[variables('barracudaNetworksTags').provider]"
+			},
+			"dependsOn": [
+				"[concat('Microsoft.Network/virtualNetworks/',parameters('vNETName'))]",
+				"[concat('Microsoft.Network/publicIPAddresses/',parameters('publicIPAddressName'))]"
+			],
+			"properties": {
+				"ipConfigurations": [{
+					"name": "[concat('ipconfig', copyIndex())]",
+					"properties": {
+						"privateIPAllocationMethod": "Dynamic",
+						"publicIPAddress": "[if(equals(copyIndex(),0),variables('publicIp1'), json('null'))]",
+						"subnet": {
+							"id": "[if(equals(copyIndex(),0),variables('subnet0Ref'), variables('subnet1Ref'))]"
+						}
+					}
+				}]
+			}
+		},
+		{
+			"apiVersion": "2017-03-30",
+			"type": "Microsoft.Compute/virtualMachines",
+			"name": "[parameters('vmName')]",
+			"location": "[parameters('location')]",
+			"tags": {
+				"provider": "[variables('barracudaNetworksTags').provider]"
+			},
+			"plan": {
+				"name": "[if(equals(parameters('deploymentType'),'BYOL'), 'byol', 'hourly')]",
+				"Product": "waf",
+				"Publisher": "barracudanetworks"
+			},
+			"dependsOn": [
+				"nicloop",
+				"[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]"
+			],
+			"properties": {
+				"hardwareProfile": {
+					"vmSize": "[parameters('vmSize')]"
+				},
+				"osProfile": {
+					"computerName": "[parameters('vmName')]",
+					"adminUsername": "will-be-replaced-by-admin",
+					"adminPassword": "[parameters('adminPassword')]"
+				},
+				"storageProfile": {
+					"imageReference": {
+						"publisher": "barracudanetworks",
+						"offer": "waf",
+						"sku": "[if(equals(parameters('deploymentType'),'BYOL'), 'byol', 'hourly')]",
+						"version": "[parameters('firmware')]"
+					},
+					"osDisk": {
+						"name": "[variables('osDiskName')]",
+						"vhd": {
+							"uri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName')), '2016-01-01').primaryEndpoints.blob, 'vhds/', variables('osDiskName'), '.vhd')]"
+						},
+						"caching": "ReadWrite",
+						"createOption": "FromImage"
+					}
+				},
+				"networkProfile": {
+					"copy": [{
+						"name": "networkInterfaces",
+						"count": "[if(equals(parameters('networkInterfaceType'),bool('false')),1, 2)]",
+						"input": {
+							"id": "[if(equals(copyIndex('networkInterfaces'),0),variables('netPro0'), variables('netPro1'))]",
+							"properties": {
+								"primary": "[if(equals(copyIndex('networkInterfaces'), 0), bool('true'), bool('false'))]"
+							}
+						}
+					}]
+				},
+				"diagnosticsProfile": {
+					"bootDiagnostics": {
+						"enabled": "[parameters('bootDiag')]",
+						"storageUri": "[reference(concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName')),'2016-01-01').primaryEndpoints.blob]"
+					}
+				}
+			}
+		},
+                {
+                    "name": "pid-14d7ae0f-e0bd-413c-8bb4-adbdca0e3bdd",
+                    "type": "Microsoft.Resources/deployments",
+                    "apiVersion": "2018-07-01",
+                    "properties": {
+                        "mode": "Incremental",
+                        "template": {
+                            "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                            "contentVersion": "1.0.0.0",
+                            "resources": []
+                         }
+                     }
+                }
+	]
+}
+
+
