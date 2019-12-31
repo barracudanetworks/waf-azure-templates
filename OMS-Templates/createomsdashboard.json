@@ -83,7 +83,7 @@
               "List": [
                 {
                   "Title": "WAF Application Attack Statistics Dashboard",
-                  "Content": "## **CONTENTS**\n1. Attack Action Statistics\n2. Attack Severity Distribution\n3. Application Attack Statstics\n  1. Aggregated Attack Types\n  2. Per Instance Attack Types\n  3. Per Application Attack Types\n4. Top Attacking Clients\n5. Top Attacking UserAgents\n\n## **Important Information**\n\nThe __*Per Application Attack Types*__ Line Chart does not have the Labels for Service(Application) Identification as to uniquely identify the Service pair of Service IP and Service Port field is used. In OMS Dashboard if the label is combination of more than one fields then the labels doesn't show. So if you want to get Attack Types for an application use the following query to manually draw charts for you:-\n\n#### Query\n\n``* Type=barracuda_CL LogType_s=WF ServiceIP_s=\"<ApplicationIP>\" ServicePort_d=<ApplicationPort> | measure count(EventName_s) by EventName_s interval 1HOUR``"
+                  "Content": "## **CONTENTS**\n1. Attack Action Statistics\n2. Attack Severity Distribution\n3. Application Attack Statstics\n  1. Aggregated Attack Types\n  2. Per Instance Attack Types\n  3. Per Application Attack Types\n4. Top Attacking Clients\n5. Top Attacking UserAgents\n\n## **Important Information**\n\nThe __*Per Application Attack Types*__ Line Chart does not have the Labels for Service(Application) Identification as to uniquely identify the Service pair of Service IP and Service Port field is used. In OMS Dashboard if the label is combination of more than one fields then the labels doesn't show. So if you want to get Attack Types for an application use the following query to manually draw charts for you:-\n\n#### Query\n\n``barracuda_CL | where LogType_s==\"WF\" ServiceIP_s=\"<ApplicationIP>\" ServicePort_d=<ApplicationPort> | summarize count(EventName_s) by EventName_s interval 1HOUR``"
                 }
               ]
             }
@@ -100,11 +100,11 @@
                 "useIcon": false
               },
               "Header": {
-                "Title": "Action Taken Count",
+                "Title": "Action Taken count",
                 "Subtitle": ""
               },
               "Donut": {
-                "Query": "* Type=barracuda_CL LogType_s=WF | measure count(Action_s) by Action_s",
+                "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count(Action_s) by Action_s",
                 "CenterLegend": {
                   "Text": "Total",
                   "Operation": "Sum",
@@ -137,13 +137,13 @@
                 }
               },
               "List": {
-                "Query": "* Type=barracuda_CL LogType_s=WF | measure count(Action_s) by Action_s",
+                "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count(Action_s) by Action_s",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
                 "ColumnsTitle": {
                   "Name": "Action",
-                  "Value": "Count"
+                  "Value": "count"
                 },
                 "Color": "#0072c6",
                 "thresholds": {
@@ -186,11 +186,11 @@
                 "useIcon": false
               },
               "Header": {
-                "Title": "Count of different Severity Levels",
+                "Title": "count of different Severity Levels",
                 "Subtitle": "0-Emer 1-Alert 2-Critical 3-Error 4-Warn 5-Notice 6-Info 7-Debug"
               },
               "Donut": {
-                "Query": "* Type=barracuda_CL LogType_s=WF | measure count(Severity_s) by Severity_s",
+                "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count(Severity_s) by Severity_s",
                 "CenterLegend": {
                   "Text": "Total",
                   "Operation": "Sum",
@@ -239,13 +239,13 @@
                 }
               },
               "List": {
-                "Query": "* Type=barracuda_CL LogType_s=WF | measure count(Severity_s) by Severity_s",
+                "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count(Severity_s) by Severity_s",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
                 "ColumnsTitle": {
                   "Name": "Severity",
-                  "Value": "Count"
+                  "Value": "count"
                 },
                 "Color": "#0072c6",
                 "thresholds": {
@@ -292,7 +292,7 @@
                 "Subtitle": ""
               },
               "LineChart": {
-                "Query": "* Type=barracuda_CL LogType_s=WF | measure count(EventName_s) by EventName_s",
+                "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count(EventName_s) by EventName_s",
                 "yAxis": {
                   "isLogarithmic": false,
                   "units": {
@@ -304,13 +304,13 @@
                 }
               },
               "List": {
-                "Query": "* Type=barracuda_CL LogType_s=WF | measure count(EventName_s) by EventName_s",
+                "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count(EventName_s) by EventName_s",
                 "HideGraph": false,
                 "enableSparklines": false,
                 "operation": "Summary",
                 "ColumnsTitle": {
                   "Name": "Type",
-                  "Value": "Count"
+                  "Value": "count"
                 },
                 "Color": "#0072c6",
                 "thresholds": {
@@ -357,7 +357,7 @@
                 "Subtitle": ""
               },
               "LineChart": {
-                "Query": "* Type=barracuda_CL LogType_s=WF | measure count(EventName_s) by EventName_s,UnitName_s",
+                "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count(EventName_s) by EventName_s,UnitName_s",
                 "yAxis": {
                   "isLogarithmic": false,
                   "units": {
@@ -369,13 +369,13 @@
                 }
               },
               "List": {
-                "Query": "* Type=barracuda_CL LogType_s=WF | measure count(EventName_s) by EventName_s,UnitName_s| sort EventName_s",
+                "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count(EventName_s) by EventName_s,UnitName_s| sort by EventName_s",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
                 "ColumnsTitle": {
                   "Name": "Type",
-                  "Value": "Count"
+                  "Value": "count"
                 },
                 "Color": "#0072c6",
                 "thresholds": {
@@ -422,7 +422,7 @@
                 "Subtitle": ""
               },
               "LineChart": {
-                "Query": "* Type=barracuda_CL LogType_s=WF | measure count(EventName_s) by EventName_s, ServicePort_d,ServiceIP_s",
+                "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count(EventName_s) by EventName_s, ServicePort_d,ServiceIP_s",
                 "yAxis": {
                   "isLogarithmic": false,
                   "units": {
@@ -434,13 +434,13 @@
                 }
               },
               "List": {
-                "Query": "* Type=barracuda_CL LogType_s=WF | measure count(EventName_s) by ServiceIP_s, ServicePort_d, EventName_s | sort EventName_s",
+                "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count(EventName_s) by ServiceIP_s, ServicePort_d, EventName_s | sort by EventName_s",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
                 "ColumnsTitle": {
                   "Name": "Type",
-                  "Value": "Count"
+                  "Value": "count"
                 },
                 "Color": "#0072c6",
                 "thresholds": {
@@ -487,7 +487,7 @@
                 "Subtitle": ""
               },
               "Donut": {
-                "Query": "* Type=barracuda_CL LogType_s=WF | measure Count(ClientIP_s) by ClientIP_s | top 10",
+                "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count(ClientIP_s) by ClientIP_s | sort by count_ClientIP_s | limit 10",
                 "CenterLegend": {
                   "Text": "Total",
                   "Operation": "Sum",
@@ -503,13 +503,13 @@
                 }
               },
               "List": {
-                "Query": "* Type=barracuda_CL LogType_s=WF | measure Count(ClientIP_s) by ClientIP_s| top 10",
+                "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count(ClientIP_s) by ClientIP_s| sort by count_ClientIP_s | limit 10",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
                 "ColumnsTitle": {
                   "Name": "ClientIP(SourceIP)",
-                  "Value": "Count"
+                  "Value": "count"
                 },
                 "Color": "#0072c6",
                 "thresholds": {
@@ -556,7 +556,7 @@
                 "Subtitle": ""
               },
               "Donut": {
-                "Query": "* Type=barracuda_CL LogType_s=WF | measure Count(UserAgent_s) by UserAgent_s| top 10",
+                "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count(UserAgent_s) by UserAgent_s| sort by count_UserAgent_s | limit 10",
                 "CenterLegend": {
                   "Text": "Total",
                   "Operation": "Sum",
@@ -572,13 +572,13 @@
                 }
               },
               "List": {
-                "Query": "* Type=barracuda_CL LogType_s=WF | measure Count(UserAgent_s) by UserAgent_s| top 10",
+                "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count(UserAgent_s) by UserAgent_s| sort by count_UserAgent_s | limit 10",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
                 "ColumnsTitle": {
                   "Name": "UserAgent",
-                  "Value": "Count"
+                  "Value": "count"
                 },
                 "Color": "#0072c6",
                 "thresholds": {
@@ -613,12 +613,12 @@
         "OverviewTile": {
           "Id": "LineChartCalloutBuilderTile",
           "Type": "OverviewTile",
-          "Version": 0,
+          "Version": 2,
           "Configuration": {
             "LineChart": {
-              "Query": "* Type=barracuda_CL LogType_s=WF",
+              "Query": "barracuda_CL | where LogType_s==\"WF\" | summarize count() by bin(TimeGenerated,1h)",
               "Callout": {
-                "Title": "Total Logs",
+                "Title": "Total",
                 "Series": "",
                 "Operation": "Sum"
               },
@@ -635,7 +635,7 @@
             "Advanced": {
               "DataFlowVerification": {
                 "Enabled": false,
-                "Query": "*",
+                "Query": "search * | limit 1 | project TimeGenerated",
                 "Message": ""
               }
             }
@@ -677,7 +677,7 @@
               "List": [
                 {
                   "Title": "WAF Application Performance Dashboard",
-                  "Content": "## **CONTENTS**\n1. HTTP And HTTPS Stats\n2. HTTP Version Distribution\n3. HTTP Status Code Distribution\n4. Requests Over Time Statistics\n5. Inbound Bandwidth Stats\n6. Outbound Bandwidth Stats\n7. Application Response Summary\n\n## **Important Information**\nThe __*Total Requests Per Application, Inbound Bandwidth per Application, Outbound Bandwidth per Application*__ charts doesn't show up the labels for the Applications as to identify an application the combination of ServiceIP and Service Port has been used. In OMS Dashboard if the label is combination of more than one fields then the labels doesn't show. So if you want to get these details for specific application then create charts manually using the following queries:-\n\n\n#### Total Requests Per Application\n\n``* Type=barracuda_CL LogType_s=TR ServiceIP_s=\"<Service IP>\" ServicePort_d=<Service Port>| measure count() by ServiceIP_s,ServicePort_d``\n\n#### Inbound Bandwidth Per Application\n\n``* Type=barracuda_CL LogType_s=TR ServiceIP_s=\"<Service IP>\" ServicePort_d=<Service Port>| measure avg(BytesReceived_d) by ServiceIP_s,ServicePort_d| display LineChart``\n\n#### Outbound Bandwidth Per Application\n\n``* Type=barracuda_CL LogType_s=TR ServiceIP_s=\"<Service IP>\" ServicePort_d=<Service Port>| measure avg(BytesSent_d) by ServiceIP_s,ServicePort_d| display LineChart``"
+                  "Content": "## **CONTENTS**\n1. HTTP And HTTPS Stats\n2. HTTP Version Distribution\n3. HTTP Status Code Distribution\n4. Requests Over Time Statistics\n5. Inbound Bandwidth Stats\n6. Outbound Bandwidth Stats\n7. Application Response Summary\n\n## **Important Information**\nThe __*Total Requests Per Application, Inbound Bandwidth per Application, Outbound Bandwidth per Application*__ charts doesn't show up the labels for the Applications as to identify an application the combination of ServiceIP and Service Port has been used. In OMS Dashboard if the label is combination of more than one fields then the labels doesn't show. So if you want to get these details for specific application then create charts manually using the following queries:-\n\n\n#### Total Requests Per Application\n\n``barracuda_CL | where LogType_s==\"TR\" ServiceIP_s=\"<Service IP>\" ServicePort_d=<Service Port>| summarize count() by ServiceIP_s,ServicePort_d``\n\n#### Inbound Bandwidth Per Application\n\n``barracuda_CL | where LogType_s==\"TR\" ServiceIP_s=\"<Service IP>\" ServicePort_d=<Service Port>| summarize avg(BytesReceived_d) by ServiceIP_s,ServicePort_d``\n\n#### Outbound Bandwidth Per Application\n\n``barracuda_CL | where LogType_s==\"TR\" ServiceIP_s=\"<Service IP>\" ServicePort_d=<Service Port>| summarize avg(BytesSent_d) by ServiceIP_s,ServicePort_d``"
                 }
               ]
             }
@@ -698,7 +698,7 @@
                 "Subtitle": ""
               },
               "Donut": {
-                "Query": "* Type=barracuda_CL LogType_s=TR | measure count(Protocol_s) by Protocol_s",
+                "Query": "barracuda_CL | where LogType_s==\"TR\" | summarize count(Protocol_s) by Protocol_s",
                 "CenterLegend": {
                   "Text": "Total",
                   "Operation": "Sum",
@@ -714,13 +714,13 @@
                 }
               },
               "List": {
-                "Query": "* Type=barracuda_CL LogType_s=TR | measure count(Protocol_s) by Protocol_s",
+                "Query": "barracuda_CL | where LogType_s==\"TR\" | summarize count(Protocol_s) by Protocol_s",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
                 "ColumnsTitle": {
                   "Name": "Protocol",
-                  "Value": "Count"
+                  "Value": "count"
                 },
                 "Color": "#0072c6",
                 "thresholds": {
@@ -763,11 +763,11 @@
                 "useIcon": false
               },
               "Header": {
-                "Title": "Count of HTTP Protocols",
+                "Title": "count of HTTP Protocols",
                 "Subtitle": ""
               },
               "Donut": {
-                "Query": "* Type=barracuda_CL LogType_s=TR | measure count(ProtocolVersion_s) by ProtocolVersion_s",
+                "Query": "barracuda_CL | where LogType_s==\"TR\" | summarize count(ProtocolVersion_s) by ProtocolVersion_s",
                 "CenterLegend": {
                   "Text": "Total",
                   "Operation": "Sum",
@@ -783,13 +783,13 @@
                 }
               },
               "List": {
-                "Query": "* Type=barracuda_CL LogType_s=TR | measure count(ProtocolVersion_s) by ProtocolVersion_s",
+                "Query": "barracuda_CL | where LogType_s==\"TR\" | summarize count(ProtocolVersion_s) by ProtocolVersion_s",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
                 "ColumnsTitle": {
                   "Name": "Protocol",
-                  "Value": "Count"
+                  "Value": "count"
                 },
                 "Color": "#0072c6",
                 "thresholds": {
@@ -836,7 +836,7 @@
                 "Subtitle": ""
               },
               "Donut": {
-                "Query": "* Type=barracuda_CL LogType_s=TR| measure count(HTTPStatus_s) by HTTPStatus_s",
+                "Query": "barracuda_CL | where LogType_s==\"TR\"| summarize count(HTTPStatus_s) by HTTPStatus_s",
                 "CenterLegend": {
                   "Text": "Total",
                   "Operation": "Sum",
@@ -852,13 +852,13 @@
                 }
               },
               "List": {
-                "Query": "* Type=barracuda_CL LogType_s=TR| measure count(HTTPStatus_s) by HTTPStatus_s",
+                "Query": "barracuda_CL | where LogType_s==\"TR\"| summarize count(HTTPStatus_s) by HTTPStatus_s",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
                 "ColumnsTitle": {
                   "Name": "HTTP Status Code",
-                  "Value": "Count"
+                  "Value": "count"
                 },
                 "Color": "#0072c6",
                 "thresholds": {
@@ -905,7 +905,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=barracuda_CL LogType_s=TR| measure count() by host_s",
+                    "Query": "barracuda_CL | where LogType_s==\"TR\"| summarize count() by host_s",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -923,7 +923,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=barracuda_CL LogType_s=TR| measure count() by ServiceIP_s,ServicePort_d",
+                    "Query": "barracuda_CL | where LogType_s==\"TR\"| summarize count() by ServiceIP_s,ServicePort_d",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -941,7 +941,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=barracuda_CL LogType_s=TR| measure count() by ServerIP_s",
+                    "Query": "barracuda_CL | where LogType_s==\"TR\"| summarize count() by ServerIP_s",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -972,7 +972,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=barracuda_CL LogType_s=TR | measure avg(BytesReceived_d) by host_s| display LineChart",
+                    "Query": "barracuda_CL | where LogType_s==\"TR\" | summarize avg(BytesReceived_d) by host_s",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -990,7 +990,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=barracuda_CL LogType_s=TR | measure avg(BytesReceived_d) by ServiceIP_s,ServicePort_d| display LineChart",
+                    "Query": "barracuda_CL | where LogType_s==\"TR\" | summarize avg(BytesReceived_d) by ServiceIP_s,ServicePort_d",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1008,7 +1008,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=barracuda_CL LogType_s=TR | measure avg(BytesReceived_d) by ServerIP_s | display LineChart",
+                    "Query": "barracuda_CL | where LogType_s==\"TR\" | summarize avg(BytesReceived_d) by ServerIP_s ",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1039,7 +1039,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=barracuda_CL LogType_s=TR | measure avg(BytesSent_d) by host_s| display LineChart",
+                    "Query": "barracuda_CL | where LogType_s==\"TR\" | summarize avg(BytesSent_d) by host_s",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1057,7 +1057,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=barracuda_CL LogType_s=TR | measure avg(BytesSent_d) by ServiceIP_s,ServicePort_d| display LineChart",
+                    "Query": "barracuda_CL | where LogType_s==\"TR\" | summarize avg(BytesSent_d) by ServiceIP_s,ServicePort_d",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1075,7 +1075,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=barracuda_CL LogType_s=TR | measure avg(BytesSent_d) by ServerIP_s| display LineChart",
+                    "Query": "barracuda_CL | where LogType_s==\"TR\" | summarize avg(BytesSent_d) by ServerIP_s",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1106,7 +1106,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=barracuda_CL LogType_s=TR | measure avg(TimeTaken_d) by ServerIP_s| display LineChart",
+                    "Query": "barracuda_CL | where LogType_s==\"TR\" | summarize avg(TimeTaken_d) by ServerIP_s",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1124,7 +1124,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=barracuda_CL LogType_s=TR | measure avg(ServerTime_d) by ServerIP_s| display LineChart",
+                    "Query": "barracuda_CL | where LogType_s==\"TR\" | summarize avg(ServerTime_d) by ServerIP_s",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1142,7 +1142,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=barracuda_CL LogType_s=TR | measure avg(CacheHit_d) by ServerIP_s| display LineChart",
+                    "Query": "barracuda_CL | where LogType_s==\"TR\" | summarize avg(CacheHit_d) by ServerIP_s",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1161,12 +1161,12 @@
         "OverviewTile": {
           "Id": "LineChartCalloutBuilderTile",
           "Type": "OverviewTile",
-          "Version": 0,
+          "Version": 2,
           "Configuration": {
             "LineChart": {
-              "Query": "* Type=barracuda_CL LogType_s=TR",
+              "Query": "barracuda_CL | where LogType_s==\"TR\" | summarize count() by bin(TimeGenerated,1h)",
               "Callout": {
-                "Title": "TOTAL LOGS",
+                "Title": "Total",
                 "Series": "",
                 "Operation": "Sum"
               },
@@ -1183,7 +1183,7 @@
             "Advanced": {
               "DataFlowVerification": {
                 "Enabled": false,
-                "Query": "*",
+                "Query": "search * | limit 1 | project TimeGenerated",
                 "Message": ""
               }
             }
@@ -1225,7 +1225,7 @@
               "List": [
                 {
                   "Title": "Barracuda WAF Audit Logs Analysis",
-                  "Content": "## **CONTENTS**\n1. WAF Configuration Events\n  1. Aggregated WAF Configuration Events\n  2. Configuration Events per WAF\n  3. Configuration Events Per UserName\n\n## **Important Information**\nThe __*Configuration Events per WAF, Configuration Events Per UserName*__ doesn't show up the WAF hostname and adminame respectively as the query contains grouping of two fields. In OMS Dashboard if the label is combination of more than one fields then the labels doesn't show. So if you want to get Configuration events for particular WAF or UserName then create charts using following queries:-\n\n#### Configuration Events per WAF\n\n``* Type=barracuda_CL LogType_s=AUDIT host_s=\"<hostname>\"| measure count() by EventName_s`\n\n#### Configuration Events per UserName\n\n``* Type=barracuda_CL LogType_s=AUDIT AdminName_s=\"<admin_name>\"| measure count() by EventName_s``"
+                  "Content": "## **CONTENTS**\n1. WAF Configuration Events\n  1. Aggregated WAF Configuration Events\n  2. Configuration Events per WAF\n  3. Configuration Events Per UserName\n\n## **Important Information**\nThe __*Configuration Events per WAF, Configuration Events Per UserName*__ doesn't show up the WAF hostname and adminame respectively as the query contains grouping of two fields. In OMS Dashboard if the label is combination of more than one fields then the labels doesn't show. So if you want to get Configuration events for particular WAF or UserName then create charts using following queries:-\n\n#### Configuration Events per WAF\n\n``barracuda_CL | where LogType_s==\"AUDIT\" host_s=\"<hostname>\"| summarize count() by EventName_s`\n\n#### Configuration Events per UserName\n\n``barracuda_CL | where LogType_s==\"AUDIT\" AdminName_s=\"<admin_name>\"| summarize count() by EventName_s``"
                 }
               ]
             }
@@ -1246,7 +1246,7 @@
                 "Subtitle": ""
               },
               "Donut": {
-                "Query": "* Type=barracuda_CL LogType_s=AUDIT | measure count() by EventName_s",
+                "Query": "barracuda_CL | where LogType_s==\"AUDIT\" | summarize count() by EventName_s",
                 "CenterLegend": {
                   "Text": "Total",
                   "Operation": "Sum",
@@ -1262,13 +1262,13 @@
                 }
               },
               "List": {
-                "Query": "* Type=barracuda_CL LogType_s=AUDIT | measure count() by EventName_s",
+                "Query": "barracuda_CL | where LogType_s==\"AUDIT\" | summarize count() by EventName_s",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
                 "ColumnsTitle": {
                   "Name": "Event Name",
-                  "Value": "Count"
+                  "Value": "count"
                 },
                 "Color": "#0072c6",
                 "thresholds": {
@@ -1315,25 +1315,25 @@
                 "Subtitle": ""
               },
               "LineChart": {
-                "Query": "* Type=barracuda_CL LogType_s=AUDIT | measure count() by EventName_s, host_s ",
+                "Query": "barracuda_CL | where LogType_s==\"AUDIT\" | summarize count() by EventName_s, host_s ",
                 "yAxis": {
                   "isLogarithmic": false,
                   "units": {
-                    "baseUnitType": "Count",
+                    "baseUnitType": "count",
                     "baseUnit": "Ones",
                     "displayUnit": "AUTO"
                   },
-                  "customLabel": "Count"
+                  "customLabel": "count"
                 }
               },
               "List": {
-                "Query": "* Type=barracuda_CL LogType_s=AUDIT | measure count() by EventName_s, host_s",
+                "Query": "barracuda_CL | where LogType_s==\"AUDIT\" | summarize count() by EventName_s, host_s",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
                 "ColumnsTitle": {
                   "Name": "Event Name",
-                  "Value": "Count"
+                  "Value": "count"
                 },
                 "Color": "#0072c6",
                 "thresholds": {
@@ -1380,7 +1380,7 @@
                 "Subtitle": ""
               },
               "LineChart": {
-                "Query": "* Type=barracuda_CL LogType_s=AUDIT| measure count() by EventName_s,AdminName_s | display linechart",
+                "Query": "barracuda_CL | where LogType_s==\"AUDIT\"| summarize count() by EventName_s,AdminName_s ",
                 "yAxis": {
                   "isLogarithmic": false,
                   "units": {
@@ -1392,13 +1392,13 @@
                 }
               },
               "List": {
-                "Query": "* Type=barracuda_CL LogType_s=AUDIT| measure count() by EventName_s,AdminName_s",
+                "Query": "barracuda_CL | where LogType_s==\"AUDIT\"| summarize count() by EventName_s,AdminName_s",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
                 "ColumnsTitle": {
                   "Name": "EventName",
-                  "Value": "Count"
+                  "Value": "count"
                 },
                 "Color": "#0072c6",
                 "thresholds": {
@@ -1431,31 +1431,18 @@
           }
         ],
         "OverviewTile": {
-          "Id": "LineChartCalloutBuilderTile",
+          "Id": "SingleNumberBuilderTile",
           "Type": "OverviewTile",
-          "Version": 0,
+          "Version": 2,
           "Configuration": {
-            "LineChart": {
-              "Query": "* Type = barracuda_CL LogType_s=AUDIT",
-              "Callout": {
-                "Title": "TOTAL LOGS",
-                "Series": "",
-                "Operation": "Sum"
-              },
-              "yAxis": {
-                "isLogarithmic": false,
-                "units": {
-                  "baseUnitType": "",
-                  "baseUnit": "",
-                  "displayUnit": ""
-                },
-                "customLabel": ""
-              }
+            "Tile": {
+              "Legend": "Number of Logs",
+              "Query": "barracuda_CL | where LogType_s==\"AUDIT\" | count"
             },
             "Advanced": {
               "DataFlowVerification": {
                 "Enabled": false,
-                "Query": "*",
+                "Query": "search * | limit 1 | project TimeGenerated",
                 "Message": ""
               }
             }
@@ -1518,9 +1505,9 @@
                 "Subtitle": ""
               },
               "LineChart": {
-                "Query": "Type=Perf (ObjectName=Processor) CounterName=\"% Processor Time\" InstanceName=_Total | measure avg(CounterValue) as AVGCPU by CounterName| display lineChart",
+                "Query": "Perf | where ObjectName==\"Processor\" and CounterName==\"% Processor Time\" and InstanceName==\"_Total\" | summarize AVGCPU=avg(CounterValue) by CounterName",
                 "Callout": {
-                  "Title": "Avg CPU",
+                  "Title": "avg CPU",
                   "Series": "",
                   "Operation": "Average"
                 },
@@ -1535,7 +1522,7 @@
                 }
               },
               "List": {
-                "Query": "Type=Perf (ObjectName=Processor) CounterName=\"% Processor Time\" InstanceName=_Total | measure avg(CounterValue) as AVGCPU by CounterName",
+                "Query": "Perf | where ObjectName==\"Processor\" and CounterName==\"% Processor Time\" and InstanceName==\"_Total\" | summarize AVGCPU=avg(CounterValue) by CounterName",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
@@ -1588,9 +1575,9 @@
                 "Subtitle": ""
               },
               "LineChart": {
-                "Query": "Type=Perf (ObjectName=Memory) CounterName=\"% Used Memory\" | measure Avg(CounterValue) as AVGMEM by CounterName | display linechart",
+                "Query": "Perf | where ObjectName==\"Memory\" and CounterName==\"% Used Memory\" | summarize AVGMEM=avg(CounterValue) by CounterName ",
                 "Callout": {
-                  "Title": "Avg Mem",
+                  "Title": "avg Mem",
                   "Series": "",
                   "Operation": "Average"
                 },
@@ -1605,7 +1592,7 @@
                 }
               },
               "List": {
-                "Query": "Type=Perf (ObjectName=Memory) CounterName=\"% Used Memory\" | measure Avg(CounterValue) as AVGMEM by CounterName",
+                "Query": "Perf | where ObjectName==\"Memory\" and CounterName==\"% Used Memory\" | summarize AVGMEM=avg(CounterValue) by CounterName",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
@@ -1658,9 +1645,9 @@
                 "Subtitle": ""
               },
               "LineChart": {
-                "Query": "* Type=Perf ObjectName=\"Logical Disk\" CounterName=\"% Used Space\" InstanceName=_Total| measure avg(CounterValue) by CounterName | display LineChart",
+                "Query": "Perf | where ObjectName==\"Logical Disk\" and CounterName==\"% Used Space\" and InstanceName==\"_Total\"| summarize avg(CounterValue) by CounterName ",
                 "Callout": {
-                  "Title": "AVG DISK",
+                  "Title": "avg DISK",
                   "Series": "",
                   "Operation": "Average"
                 },
@@ -1675,7 +1662,7 @@
                 }
               },
               "List": {
-                "Query": "* Type=Perf ObjectName=\"Logical Disk\" CounterName=\"% Used Space\" InstanceName=_Total| measure avg(CounterValue) by CounterName",
+                "Query": "Perf | where ObjectName==\"Logical Disk\" and CounterName==\"% Used Space\" and InstanceName==\"_Total\"| summarize avg(CounterValue) by CounterName",
                 "HideGraph": false,
                 "enableSparklines": true,
                 "operation": "Summary",
@@ -1728,7 +1715,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=Perf ObjectName=Network CounterName=\"Total Bytes\" | measure avg(CounterValue) by CounterName| display lineChart",
+                    "Query": "Perf | where ObjectName==\"Network\" and CounterName==\"Total Bytes\" | summarize avg(CounterValue) by CounterName",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1746,7 +1733,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=Perf ObjectName=Network CounterName=\"Total Bytes Received\" | measure avg(CounterValue) by CounterName| display lineChart",
+                    "Query": "Perf | where ObjectName==\"Network\" and CounterName==\"Total Bytes Received\" | summarize avg(CounterValue) by CounterName",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1764,7 +1751,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=Perf ObjectName=Network CounterName=\"Total Bytes Transmitted\" | measure avg(CounterValue) by CounterName| display lineChart",
+                    "Query": "Perf | where ObjectName==\"Network\" and CounterName==\"Total Bytes Transmitted\" | summarize avg(CounterValue) by CounterName",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1795,7 +1782,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "Type=Perf (ObjectName=Processor) CounterName=\"% Processor Time\" InstanceName=_Total | measure Avg(CounterValue) as AVGCPU by Computer | display linechart",
+                    "Query": "Perf | where ObjectName==\"Processor\" and CounterName==\"% Processor Time\" and InstanceName==\"_Total\" | summarize AVGCPU=avg(CounterValue) by Computer ",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1813,7 +1800,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "Type=Perf (ObjectName=Processor) CounterName=\"% Processor Time\" | measure max(CounterValue) as MAXCPU by Computer",
+                    "Query": "Perf | where ObjectName==\"Processor\" and CounterName==\"% Processor Time\" and InstanceName==\"_Total\" | summarize MAXCPU=max(CounterValue) by Computer",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1831,7 +1818,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "Type=Perf (ObjectName=Processor) CounterName=\"% Processor Time\" | measure min(CounterValue) as MINCPU by Computer",
+                    "Query": "Perf | where ObjectName==\"Processor\" and CounterName==\"% Processor Time\" and InstanceName==\"_Total\" | summarize MINCPU=min(CounterValue) by Computer",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1862,7 +1849,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "Type=Perf (ObjectName=Memory) CounterName=\"% Used Memory\" | measure Avg(CounterValue) as AVGMEM by Computer | display linechart",
+                    "Query": "Perf | where ObjectName==\"Memory\" and CounterName==\"% Used Memory\" | summarize AVGMEM=avg(CounterValue) by Computer ",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1880,7 +1867,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "Type=Perf (ObjectName=Memory) CounterName=\"Used Memory MBytes\" | measure Avg(CounterValue) as AVGMEM by Computer | display linechart",
+                    "Query": "Perf | where ObjectName==\"Memory\" and CounterName==\"Used Memory MBytes\" | summarize AVGMEM=avg(CounterValue)  by Computer ",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1898,7 +1885,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "Type=Perf (ObjectName=Memory) CounterName=\"Available MBytes Memory\" | measure Avg(CounterValue) as AVGMEM by Computer | display linechart",
+                    "Query": "Perf | where ObjectName==\"Memory\" and CounterName==\"Available MBytes Memory\" | summarize AVGMEM=avg(CounterValue) by Computer ",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1929,7 +1916,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=Perf ObjectName=\"Logical Disk\" CounterName=\"% Used Space\" InstanceName=_Total| measure Avg(CounterValue) by Computer | display LineChart",
+                    "Query": "Perf | where ObjectName==\"Logical Disk\" and CounterName==\"% Used Space\" and InstanceName==\"_Total\"| summarize avg(CounterValue) by Computer ",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1947,7 +1934,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=Perf ObjectName=\"Logical Disk\" CounterName=\"Disk Write Bytes/sec\" InstanceName=_Total| measure avg(CounterValue) by Computer | display LineChart",
+                    "Query": "Perf | where ObjectName==\"Logical Disk\" and CounterName==\"Disk Write Bytes/sec\" and InstanceName==\"_Total\"| summarize avg(CounterValue) by Computer ",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1965,7 +1952,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=Perf ObjectName=\"Logical Disk\" CounterName=\"Disk Read Bytes/sec\" InstanceName=_Total| measure avg(CounterValue) by Computer | display LineChart",
+                    "Query": "Perf | where ObjectName==\"Logical Disk\" and CounterName==\"Disk Read Bytes/sec\" and InstanceName==\"_Total\"| summarize avg(CounterValue) by Computer ",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -1996,7 +1983,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=Perf ObjectName=Network CounterName=\"Total Bytes\" | measure avg(CounterValue) by Computer| display lineChart",
+                    "Query": "Perf | where ObjectName==\"Network\" and CounterName==\"Total Bytes\" | summarize avg(CounterValue) by Computer",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -2014,7 +2001,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=Perf ObjectName=Network CounterName=\"Total Bytes Received\" | measure avg(CounterValue) by Computer| display lineChart",
+                    "Query": "Perf | where ObjectName==\"Network\" and CounterName==\"Total Bytes Received\" | summarize avg(CounterValue) by Computer",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -2032,7 +2019,7 @@
                     "Subtitle": ""
                   },
                   "LineChart": {
-                    "Query": "* Type=Perf ObjectName=Network CounterName=\"Total Bytes Transmitted\" | measure avg(CounterValue) by Computer| display lineChart",
+                    "Query": "Perf | where ObjectName==\"Network\" and CounterName==\"Total Bytes Transmitted\" | summarize avg(CounterValue) by Computer",
                     "yAxis": {
                       "isLogarithmic": false,
                       "units": {
@@ -2049,22 +2036,30 @@
           }
         ],
         "OverviewTile": {
-          "Id": "DoubleNumberBuilderTile",
+          "Id": "SingleQueryDonutBuilderTileV1",
           "Type": "OverviewTile",
-          "Version": 0,
+          "Version": 2,
           "Configuration": {
-            "TileOne": {
-              "Legend": "Number of Logs",
-              "Query": "* Type=Perf "
-            },
-            "TileTwo": {
-              "Legend": "Types of Logs",
-              "Query": "* Type=Perf| measure count() by ObjectName"
+            "Donut": {
+              "Query": "Perf | summarize count() by ObjectName | sort by count_ desc | limit 8",
+              "CenterLegend": {
+                "Text": "Total",
+                "Operation": "Sum",
+                "ArcsToSelect": []
+              },
+              "Options": {
+                "colors": [
+                  "#00188f",
+                  "#0072c6",
+                  "#00bcf2"
+                ],
+                "valueColorMapping": []
+              }
             },
             "Advanced": {
               "DataFlowVerification": {
                 "Enabled": false,
-                "Query": "*",
+                "Query": "search * | limit 1 | project TimeGenerated",
                 "Message": ""
               }
             }
