@@ -1,0 +1,345 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminPassword": {
+      "type": "SecureString",
+      "metadata": {
+        "description": "Password for the Virtual Machine."
+      }
+    },
+    "prefix": {
+      "defaultValue": "CUDA",
+      "type": "String",
+      "metadata": {
+        "description": "identifying prefix for all VM's being build. e.g WeProd would become WeProd-VM-CGF (Max 19 char, no spaces, [A-Za-z0-9]"
+      }
+    },
+    "dnsNameForLBIP": {
+      "type": "String",
+      "metadata": {
+        "description": "Unique DNS Name for the Public IP used to access the WAF."
+      }
+    },
+    "vNetResourceGroup": {
+      "type": "String",
+      "metadata": {
+        "description": "The name of the vNETs resource group"
+      }
+    },
+    "vNETName": {
+      "type": "String"
+    },
+    "subnetName": {
+      "type": "String",
+      "metadata": {
+        "description": "Unique DNS Name for the Public IP used to access the WAF."
+      }
+    },
+    "subnetAddressPrefix": {
+      "type": "String",
+      "metadata": {
+        "description": "Subnet address prefix if a new subnet should be created "
+      }
+    },
+    "license": {
+
+      "allowedValues": [
+        "hourly",
+        "byol"
+      ],
+      "type": "String",
+      "metadata": {
+        "description": "Hourly (PAYG) or BYOL (Bring your own) license"
+      },
+      "defaultValue": "byol"
+    },
+    "numberOfInstances": {
+      "defaultValue": 2,
+      "type": "Int"
+    },
+    "vmSize": {
+      "allowedValues": [
+        "Standard_DS1_v2",
+        "Standard_DS1_v2",
+        "Standard_D2s_v3",
+        "Standard_D4s_v3"
+      ],
+      "type": "String",
+      "metadata": {
+        "description": "Size of instances"
+      }
+    }
+  },
+  "variables": {
+    "computeApiVersion": "2017-03-30",
+    "networkApiVersion": "2017-08-01",
+    "imagePublisher": "barracudanetworks",
+    "imageOffer": "waf",
+    "wafVmName": "[concat(parameters('prefix'),'-WAF-')]",
+    "WAFAVSetName": "[concat(variables('wafVmName'),'AV')]",
+    "adminUsername": "azureuser",
+    "loadBalancerName": "[concat(variables('wafVmName'),'LB')]",
+    "nicNamePrefix": "[concat(variables('wafVmName'),'NIC')]",
+    "publicIPAddressName": "[concat(variables('wafVmName'),'PIP')]",
+    "publicIPAddressType": "Static",
+    "vnetID": "[resourceId(parameters('VNetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('vNETName'))]",
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]",
+    "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('loadBalancerName'))]",
+    "PublicIPID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
+    "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontend')]",
+    "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/loadBalancerBackend')]",
+    "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]",
+    "lbhttpsProbeID": "[concat(variables('lbID'),'/probes/httpsProbe')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('publicIPAddressName')]",
+      "apiVersion": "[variables('networkApiVersion')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "wafPublicIPAddress"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('dnsNameForLBIP')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/availabilitySets",
+      "sku": {
+        "name": "Aligned"
+      },
+      "name": "[variables('WAFAVSetName')]",
+      "apiVersion": "[variables('computeApiVersion')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "WAFAvailabilitySet"
+      },
+      "properties": {
+        "platformFaultDomainCount": 2,
+        "platformUpdateDomainCount": 5
+      },
+      "dependsOn": []
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('nicNamePrefix'), copyindex(1))]",
+      "apiVersion": "[variables('networkApiVersion')]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "nicLoop",
+        "count": "[parameters('numberOfInstances')]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[concat(variables('lbID'), '/backendAddressPools/LoadBalancerBackend')]"
+                }
+              ],
+              "loadBalancerInboundNatRules": [
+                {
+                  "id": "[concat(variables('lbID'),'/inboundNatRules/',variables('wafVmName'), copyindex(1),'-MGMT',copyindex(1))]"
+                },
+                {
+                  "id": "[concat(variables('lbID'),'/inboundNatRules/',variables('wafVmName'), copyindex(1),'-SecureMGMT',copyindex(1))]"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]",
+        "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'), '/inboundNatRules/',variables('wafVmName'), copyindex(1),'-MGMT',copyindex(1))]",
+        "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'), '/inboundNatRules/',variables('wafVmName'), copyindex(1),'-SecureMGMT',copyindex(1))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/loadBalancers",
+      "name": "[variables('loadBalancerName')]",
+      "apiVersion": "[variables('networkApiVersion')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "WAFExternalLB"
+      },
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "loadBalancerFrontEnd",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[variables('PublicIPID')]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "loadBalancerBackend"
+          }
+        ],
+        "loadBalancingRules": [
+          {
+            "name": "HTTP",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[variables('frontEndIPConfigID')]"
+              },
+              "backendAddressPool": {
+                "id": "[variables('lbPoolID')]"
+              },
+              "protocol": "Tcp",
+              "frontendPort": 80,
+              "backendPort": 80,
+              "enableFloatingIP": false,
+              "idleTimeoutInMinutes": 5,
+              "probe": {
+                "id": "[variables('lbhttpProbeID')]"
+              }
+            }
+          },
+          {
+            "name": "HTTPS",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[variables('frontEndIPConfigID')]"
+              },
+              "backendAddressPool": {
+                "id": "[variables('lbPoolID')]"
+              },
+              "protocol": "Tcp",
+              "frontendPort": 443,
+              "backendPort": 443,
+              "enableFloatingIP": false,
+              "idleTimeoutInMinutes": 5,
+              "probe": {
+                "id": "[variables('lbhttpProbeID')]"
+              }
+            }
+          }
+        ],
+        "probes": [
+          {
+            "name": "httpProbe",
+            "properties": {
+              "protocol": "Http",
+              "port": 80,
+              "intervalInSeconds": 30,
+              "numberOfProbes": 2,
+              "requestPath": "/"
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/loadBalancers/inboundNatRules",
+      "name": "[concat(variables('loadBalancerName'),'/',variables('wafVmName'), copyindex(1),'-MGMT',copyIndex(1))]",
+      "apiVersion": "[variables('networkApiVersion')]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "lbMGMTLoop",
+        "count": "[parameters('numberOfInstances')]"
+      },
+      "properties": {
+        "frontendIPConfiguration": {
+          "id": "[variables('frontEndIPConfigID')]"
+        },
+        "protocol": "tcp",
+        "frontendPort": "[copyIndex(8001)]",
+        "backendPort": 8000
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/loadBalancers/inboundNatRules",
+      "name": "[concat(variables('loadBalancerName'),'/',variables('wafVmName'), copyindex(1),'-SecureMGMT',copyIndex(1))]",
+      "apiVersion": "[variables('networkApiVersion')]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "lbSecureMGMTLoop",
+        "count": "[parameters('numberOfInstances')]"
+      },
+      "properties": {
+        "frontendIPConfiguration": {
+          "id": "[variables('frontEndIPConfigID')]"
+        },
+        "protocol": "tcp",
+        "frontendPort": "[copyIndex(8444)]",
+        "backendPort": 8443
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(variables('wafVmName'), copyindex(1))]",
+      "apiVersion": "[variables('computeApiVersion')]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "virtualMachineLoop",
+        "count": "[parameters('numberOfInstances')]"
+      },
+      "plan": {
+        "name": "[parameters('license')]",
+        "Product": "waf",
+        "Publisher": "barracudanetworks"
+      },
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('WAFAVSetName'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('wafVmName'), copyindex(1))]",
+          "adminUsername": "[variables('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('imagePublisher')]",
+            "offer": "[variables('imageOffer')]",
+            "sku": "[parameters('license')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[concat(variables('wafVmName'),'osdisk',copyindex(1))]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicNamePrefix'),copyindex(1)))]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrefix'), copyindex(1))]",
+        "[concat('Microsoft.Compute/availabilitySets/', variables('WAFAVSetName'))]"
+      ]
+    }
+  ]
+}
