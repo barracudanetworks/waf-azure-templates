@@ -1,4 +1,4 @@
-#cloud-config for Ubuntu 18.04 LTS
+#cloud-config
 #
 #author: trichabadas
 #
