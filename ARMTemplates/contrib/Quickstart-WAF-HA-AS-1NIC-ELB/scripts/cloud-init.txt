@@ -1,0 +1,49 @@
+#cloud-config for Ubuntu 18.04 LTS
+#
+#author: trichabadas
+#
+#Installs docker and 9 vulnerable/test docker containers to use as a firing range for labs
+#PetStore does not work at this time when accessed through a browser, so it more really 8 applications.
+#PetStore may work if some CORS settings are disabled on your browser.
+#Each application is installed on a specific port.
+#Please see the specific docker run commands to see the actual port in use for a specific application.
+#The front-end port can be changed before running this file in case you want to use any other port.
+#
+#This command "sudo usermod -aG docker ${USER}" usually fails, and the user cannot run docker commands without sudo
+#If this is annoying, try running it again while logged in - it will work at this point
+# 
+
+#have cloud init manage the hosts file
+manage_etc_hosts: false
+
+runcmd:
+- "date"
+- "sudo apt-get -y update"
+- "sudo apt-get -y upgrade"
+- "sudo apt-get -y remove docker docker-engine docker.io"
+- "sudo apt install docker.io -y"
+- "sudo systemctl start docker"
+- "sudo systemctl enable docker"
+- "sudo groupadd docker"
+- "sleep 10"
+- "sudo usermod -aG docker ${USER}"
+- "docker pull vulnerables/web-dvwa"
+- "docker run -d -p 1000:80 vulnerables/web-dvwa"
+- "docker pull szsecurity/mutillidae"
+- "docker run -d -p 2000:80 szsecurity/mutillidae"
+- "docker pull szsecurity/webgoat"
+- "docker run -d -p 3000:80 szsecurity/webgoat"
+- "docker pull raesene/bwapp"
+- "docker run -d -p 4000:80 raesene/bwapp"
+- "docker pull bkimminich/juice-shop"
+- "docker run -d -p 5000:80 bkimminich/juice-shop"
+- "docker pull eystsen/altoro"
+- "docker run -d -p 6001:8080 eystsen/altoro"
+- "docker pull kennethreitz/httpbin"
+- "docker run -d -p 7000:80 kennethreitz/httpbin"
+- "docker pull mutzel/all-in-one-hackazon:postinstall"
+- "docker run -d -p 8000:80 mutzel/all-in-one-hackazon:postinstall supervisord -n"
+- "docker pull swaggerapi/petstore"
+- "docker run -d -p 9000:8080 swaggerapi/petstore"
+- "date"
+
