@@ -78,14 +78,12 @@
     "imagePublisher": "barracudanetworks",
     "imageOffer": "waf",
     "wafVmName": "[concat(parameters('prefix'),'-WAF-')]",
-    "VmName": "[concat(parameters('prefix'),'-VM-WEB')]",
     "WAFAVSetName": "[concat(variables('wafVmName'),'AV')]",
     "adminUsername": "azureuser",
     "nsgName": "[concat(parameters('prefix'),'-NSG-WAF')]",
     "loadBalancerName": "[concat(variables('wafVmName'),'LB')]",
     "nicNamePrefix": "[concat(variables('wafVmName'),'NIC')]",
     "publicIPAddressName": "[concat(variables('wafVmName'),'PIP')]",
-    "vmpublicIPAddressName": "[concat(variables('VmName'),'PIP')]",
     "publicIPAddressType": "Static",
     "vNetName": "[concat(parameters('prefix'),'-VNET')]",
     "vNetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('vNetName'))]",
@@ -97,14 +95,8 @@
     "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontend')]",
     "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/loadBalancerBackend')]",
     "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]",
-    "lbhttpsProbeID": "[concat(variables('lbID'),'/probes/httpsProbe')]",
-    "vmnameImagePublisher": "Canonical",
-    "vmnameImageOffer": "UbuntuServer",
-    "OSVersion": "18.04-LTS",
-    "webVmSize": "Standard_D2_v2",
-    "vmSubnetRef": "[concat(variables('vnetID'), '/subnets/', variables('subnetNameWeb'))]",
-    "webVMNicName": "[concat(variables('vmName'), 'NetworkInterface')]",
-    "osDiskType": "Standard_LRS"
+    "lbhttpsProbeID": "[concat(variables('lbID'),'/probes/httpsProbe')]"
+
   },
   "resources": [
     {
@@ -128,7 +120,7 @@
       "apiVersion": "[variables('networkApiVersion')]",
       "location": "[resourceGroup().location]",
       "tags": {
-        "displayName": "wafPublicIPAddress"
+        "displayName": "vmPublicIPAddress"
       },
       "properties": {
         "publicIPAllocationMethod": "[variables('publicIPAddressType')]"
@@ -222,12 +214,12 @@
             }
           },
           {
-            "name": "AllowMGMTInboundWAF1",
+            "name": "AllowUnSecureManagementAccess",
             "properties": {
-              "description": "Allow inbound mgmt waf 1",
+              "description": "Allow Manangement Access",
               "protocol": "*",
               "sourcePortRange": "*",
-              "destinationPortRange": "8443",
+              "destinationPortRange": "8000",
               "sourceAddressPrefix": "*",
               "destinationAddressPrefix": "*",
               "access": "Allow",
@@ -236,52 +228,23 @@
             }
           },
           {
-            "name": "AllowMGMTInboundWAF2",
+            "name": "AllowSecureManagementAccess",
             "properties": {
-              "description": "Allow inbound mgmt waf2",
+              "description": "Allow Secure Manangement Access",
               "protocol": "*",
               "sourcePortRange": "*",
-              "destinationPortRange": "8444",
+              "destinationPortRange": "8443",
               "sourceAddressPrefix": "*",
               "destinationAddressPrefix": "*",
               "access": "Allow",
               "priority": 130,
               "direction": "Inbound"
             }
-          },
-          {
-            "name": "AllowHTTPMGMTInboundWAF1",
-            "properties": {
-              "description": "Allow inbound mgmt waf 1",
-              "protocol": "*",
-              "sourcePortRange": "*",
-              "destinationPortRange": "8001",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 140,
-              "direction": "Inbound"
-            }
-          },
-          {
-            "name": "AllowHTTPMGMTInboundWAF2",
-            "properties": {
-              "description": "Allow inbound mgmt waf2",
-              "protocol": "*",
-              "sourcePortRange": "*",
-              "destinationPortRange": "8002",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 150,
-              "direction": "Inbound"
-            }
           }
-
         ]
       }
     },
-    {
+      {
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(variables('nicNamePrefix'), copyindex(1))]",
       "apiVersion": "[variables('networkApiVersion')]",
@@ -444,127 +407,6 @@
       "dependsOn": [
         "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]"
       ]
-    },
-    {
-      "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(variables('wafVmName'), copyindex(1))]",
-      "apiVersion": "[variables('computeApiVersion')]",
-      "location": "[resourceGroup().location]",
-      "copy": {
-        "name": "virtualMachineLoop",
-        "count": "[parameters('numberOfInstances')]"
-      },
-      "plan": {
-        "name": "[parameters('license')]",
-        "Product": "waf",
-        "Publisher": "barracudanetworks"
-      },
-      "properties": {
-        "availabilitySet": {
-          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('WAFAVSetName'))]"
-        },
-        "hardwareProfile": {
-          "vmSize": "[parameters('vmSize')]"
-        },
-        "osProfile": {
-          "computerName": "[concat(variables('wafVmName'), copyindex(1))]",
-          "adminUsername": "[variables('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
-        },
-        "storageProfile": {
-          "imageReference": {
-            "publisher": "[variables('imagePublisher')]",
-            "offer": "[variables('imageOffer')]",
-            "sku": "[parameters('license')]",
-            "version": "latest"
-          },
-          "osDisk": {
-            "name": "[concat(variables('wafVmName'),'osdisk',copyindex(1))]",
-            "caching": "ReadWrite",
-            "createOption": "FromImage"
-          }
-        },
-        "networkProfile": {
-          "networkInterfaces": [
-            {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicNamePrefix'),copyindex(1)))]"
-            }
-          ]
-        }
-      },
-      "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrefix'), copyindex(1))]",
-        "[concat('Microsoft.Compute/availabilitySets/', variables('WAFAVSetName'))]"
-      ]
-    },
-
-    {
-      "name": "[variables('webVMNicName')]",
-      "type": "Microsoft.Network/networkInterfaces",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2016-03-30",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('vNetName'))]"
-      ],
-      "tags": {
-        "displayName": "webVMNic"
-      },
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig1",
-            "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "subnet": {
-                "id": "[variables('vmSubnetRef')]"
-              }
-              "publicPIP"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "type": "Microsoft.Compute/virtualMachines",
-      "apiVersion": "2019-03-01",
-      "name": "[variables('vmName')]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/networkInterfaces/', variables('webVMNicName'))]"
-      ],
-      "properties": {
-        "hardwareProfile": {
-          "vmSize": "[parameters('VmSize')]"
-        },
-        "storageProfile": {
-          "osDisk": {
-            "createOption": "fromImage",
-            "managedDisk": {
-              "storageAccountType": "[variables('osDiskType')]"
-            }
-          },
-          "imageReference": {
-            "publisher": "Canonical",
-            "offer": "UbuntuServer",
-            "sku": "[variables('OSVersion')]",
-            "version": "latest"
-          }
-        },
-        "networkProfile": {
-          "networkInterfaces": [
-            {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('webVMNicName'))]"
-            }
-          ]
-        },
-        "osProfile": {
-          "computerName": "[variables('vmName')]",
-          "adminUsername": "[variables('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]",
-          "customdata": "IwBjAGwAbwB1AGQALQBjAG8AbgBmAGkAZwAgAGYAbwByACAAVQBiAHUAbgB0AHUAIAAxADgALgAwADQAIABMAFQAUwBcAFwAbgAjAFwAXABuACMAYQB1AHQAaABvAHIAOgAgAHQAcgBpAGMAaABhAGIAYQBkAGEAcwBcAFwAbgAjAFwAXABuACMASQBuAHMAdABhAGwAbABzACAAZABvAGMAawBlAHIAIABhAG4AZAAgADkAIAB2AHUAbABuAGUAcgBhAGIAbABlAC8AdABlAHMAdAAgAGQAbwBjAGsAZQByACAAYwBvAG4AdABhAGkAbgBlAHIAcwAgAHQAbwAgAHUAcwBlACAAYQBzACAAYQAgAGYAaQByAGkAbgBnACAAcgBhAG4AZwBlACAAZgBvAHIAIABsAGEAYgBzAFwAXABuACMAUABlAHQAUwB0AG8AcgBlACAAZABvAGUAcwAgAG4AbwB0ACAAdwBvAHIAawAgAGEAdAAgAHQAaABpAHMAIAB0AGkAbQBlACAAdwBoAGUAbgAgAGEAYwBjAGUAcwBzAGUAZAAgAHQAaAByAG8AdQBnAGgAIABhACAAYgByAG8AdwBzAGUAcgAsACAAcwBvACAAaQB0ACAAbQBvAHIAZQAgAHIAZQBhAGwAbAB5ACAAOAAgAGEAcABwAGwAaQBjAGEAdABpAG8AbgBzAC4AXABcAG4AIwBQAGUAdABTAHQAbwByAGUAIABtAGEAeQAgAHcAbwByAGsAIABpAGYAIABzAG8AbQBlACAAQwBPAFIAUwAgAHMAZQB0AHQAaQBuAGcAcwAgAGEAcgBlACAAZABpAHMAYQBiAGwAZQBkACAAbwBuACAAeQBvAHUAcgAgAGIAcgBvAHcAcwBlAHIALgBcAFwAbgAjAEUAYQBjAGgAIABhAHAAcABsAGkAYwBhAHQAaQBvAG4AIABpAHMAIABpAG4AcwB0AGEAbABsAGUAZAAgAG8AbgAgAGEAIABzAHAAZQBjAGkAZgBpAGMAIABwAG8AcgB0AC4AXABcAG4AIwBQAGwAZQBhAHMAZQAgAHMAZQBlACAAdABoAGUAIABzAHAAZQBjAGkAZgBpAGMAIABkAG8AYwBrAGUAcgAgAHIAdQBuACAAYwBvAG0AbQBhAG4AZABzACAAdABvACAAcwBlAGUAIAB0AGgAZQAgAGEAYwB0AHUAYQBsACAAcABvAHIAdAAgAGkAbgAgAHUAcwBlACAAZgBvAHIAIABhACAAcwBwAGUAYwBpAGYAaQBjACAAYQBwAHAAbABpAGMAYQB0AGkAbwBuAC4AXABcAG4AIwBUAGgAZQAgAGYAcgBvAG4AdAAtAGUAbgBkACAAcABvAHIAdAAgAGMAYQBuACAAYgBlACAAYwBoAGEAbgBnAGUAZAAgAGIAZQBmAG8AcgBlACAAcgB1AG4AbgBpAG4AZwAgAHQAaABpAHMAIABmAGkAbABlACAAaQBuACAAYwBhAHMAZQAgAHkAbwB1ACAAdwBhAG4AdAAgAHQAbwAgAHUAcwBlACAAYQBuAHkAIABvAHQAaABlAHIAIABwAG8AcgB0AC4AXABcAG4AIwBcAFwAbgAjAFQAaABpAHMAIABjAG8AbQBtAGEAbgBkACAAXABcACIAcwB1AGQAbwAgAHUAcwBlAHIAbQBvAGQAIAAtAGEARwAgAGQAbwBjAGsAZQByACAAJAB7AFUAUwBFAFIAfQBcAFwAIgAgAHUAcwB1AGEAbABsAHkAIABmAGEAaQBsAHMALAAgAGEAbgBkACAAdABoAGUAIAB1AHMAZQByACAAYwBhAG4AbgBvAHQAIAByAHUAbgAgAGQAbwBjAGsAZQByACAAYwBvAG0AbQBhAG4AZABzACAAdwBpAHQAaABvAHUAdAAgAHMAdQBkAG8AXABcAG4AIwBJAGYAIAB0AGgAaQBzACAAaQBzACAAYQBuAG4AbwB5AGkAbgBnACwAIAB0AHIAeQAgAHIAdQBuAG4AaQBuAGcAIABpAHQAIABhAGcAYQBpAG4AIAB3AGgAaQBsAGUAIABsAG8AZwBnAGUAZAAgAGkAbgAgAC0AIABpAHQAIAB3AGkAbABsACAAdwBvAHIAawAgAGEAdAAgAHQAaABpAHMAIABwAG8AaQBuAHQAXABcAG4AIwAgAFwAXABuAFwAXABuACMAaABhAHYAZQAgAGMAbABvAHUAZAAgAGkAbgBpAHQAIABtAGEAbgBhAGcAZQAgAHQAaABlACAAaABvAHMAdABzACAAZgBpAGwAZQBcAFwAbgBtAGEAbgBhAGcAZQBfAGUAdABjAF8AaABvAHMAdABzADoAIABmAGEAbABzAGUAXABcAG4AXABcAG4AcgB1AG4AYwBtAGQAOgBcAFwAbgAtACAAXABcACIAZABhAHQAZQBcAFwAIgBcAFwAbgAtACAAXABcACIAcwB1AGQAbwAgAGEAcAB0AC0AZwBlAHQAIAAtAHkAIAB1AHAAZABhAHQAZQBcAFwAIgBcAFwAbgAtACAAXABcACIAcwB1AGQAbwAgAGEAcAB0AC0AZwBlAHQAIAAtAHkAIAB1AHAAZwByAGEAZABlAFwAXAAiAFwAXABuAC0AIABcAFwAIgBzAHUAZABvACAAYQBwAHQALQBnAGUAdAAgAC0AeQAgAHIAZQBtAG8AdgBlACAAZABvAGMAawBlAHIAIABkAG8AYwBrAGUAcgAtAGUAbgBnAGkAbgBlACAAZABvAGMAawBlAHIALgBpAG8AXABcACIAXABcAG4ALQAgAFwAXAAiAHMAdQBkAG8AIABhAHAAdAAgAGkAbgBzAHQAYQBsAGwAIABkAG8AYwBrAGUAcgAuAGkAbwAgAC0AeQBcAFwAIgBcAFwAbgAtACAAXABcACIAcwB1AGQAbwAgAHMAeQBzAHQAZQBtAGMAdABsACAAcwB0AGEAcgB0ACAAZABvAGMAawBlAHIAXABcACIAXABcAG4ALQAgAFwAXAAiAHMAdQBkAG8AIABzAHkAcwB0AGUAbQBjAHQAbAAgAGUAbgBhAGIAbABlACAAZABvAGMAawBlAHIAXABcACIAXABcAG4ALQAgAFwAXAAiAHMAdQBkAG8AIABnAHIAbwB1AHAAYQBkAGQAIABkAG8AYwBrAGUAcgBcAFwAIgBcAFwAbgAtACAAXABcACIAcwBsAGUAZQBwACAAMQAwAFwAXAAiAFwAXABuAC0AIABcAFwAIgBzAHUAZABvACAAdQBzAGUAcgBtAG8AZAAgAC0AYQBHACAAZABvAGMAawBlAHIAIAAkAHsAVQBTAEUAUgB9AFwAXAAiAFwAXABuAC0AIABcAFwAIgBkAG8AYwBrAGUAcgAgAHAAdQBsAGwAIAB2AHUAbABuAGUAcgBhAGIAbABlAHMALwB3AGUAYgAtAGQAdgB3AGEAXABcACIAXABcAG4ALQAgAFwAXAAiAGQAbwBjAGsAZQByACAAcgB1AG4AIAAtAGQAIAAtAHAAIAAxADAAMAAwADoAOAAwACAAdgB1AGwAbgBlAHIAYQBiAGwAZQBzAC8AdwBlAGIALQBkAHYAdwBhAFwAXAAiAFwAXABuAC0AIABcAFwAIgBkAG8AYwBrAGUAcgAgAHAAdQBsAGwAIABzAHoAcwBlAGMAdQByAGkAdAB5AC8AbQB1AHQAaQBsAGwAaQBkAGEAZQBcAFwAIgBcAFwAbgAtACAAXABcACIAZABvAGMAawBlAHIAIAByAHUAbgAgAC0AZAAgAC0AcAAgADIAMAAwADAAOgA4ADAAIABzAHoAcwBlAGMAdQByAGkAdAB5AC8AbQB1AHQAaQBsAGwAaQBkAGEAZQBcAFwAIgBcAFwAbgAtACAAXABcACIAZABvAGMAawBlAHIAIABwAHUAbABsACAAcwB6AHMAZQBjAHUAcgBpAHQAeQAvAHcAZQBiAGcAbwBhAHQAXABcACIAXABcAG4ALQAgAFwAXAAiAGQAbwBjAGsAZQByACAAcgB1AG4AIAAtAGQAIAAtAHAAIAAzADAAMAAwADoAOAAwACAAcwB6AHMAZQBjAHUAcgBpAHQAeQAvAHcAZQBiAGcAbwBhAHQAXABcACIAXABcAG4ALQAgAFwAXAAiAGQAbwBjAGsAZQByACAAcAB1AGwAbAAgAHIAYQBlAHMAZQBuAGUALwBiAHcAYQBwAHAAXABcACIAXABcAG4ALQAgAFwAXAAiAGQAbwBjAGsAZQByACAAcgB1AG4AIAAtAGQAIAAtAHAAIAA0ADAAMAAwADoAOAAwACAAcgBhAGUAcwBlAG4AZQAvAGIAdwBhAHAAcABcAFwAIgBcAFwAbgAtACAAXABcACIAZABvAGMAawBlAHIAIABwAHUAbABsACAAYgBrAGkAbQBtAGkAbgBpAGMAaAAvAGoAdQBpAGMAZQAtAHMAaABvAHAAXABcACIAXABcAG4ALQAgAFwAXAAiAGQAbwBjAGsAZQByACAAcgB1AG4AIAAtAGQAIAAtAHAAIAA1ADAAMAAwADoAOAAwACAAYgBrAGkAbQBtAGkAbgBpAGMAaAAvAGoAdQBpAGMAZQAtAHMAaABvAHAAXABcACIAXABcAG4ALQAgAFwAXAAiAGQAbwBjAGsAZQByACAAcAB1AGwAbAAgAGUAeQBzAHQAcwBlAG4ALwBhAGwAdABvAHIAbwBcAFwAIgBcAFwAbgAtACAAXABcACIAZABvAGMAawBlAHIAIAByAHUAbgAgAC0AZAAgAC0AcAAgADYAMAAwADEAOgA4ADAAOAAwACAAZQB5AHMAdABzAGUAbgAvAGEAbAB0AG8AcgBvAFwAXAAiAFwAXABuAC0AIABcAFwAIgBkAG8AYwBrAGUAcgAgAHAAdQBsAGwAIABrAGUAbgBuAGUAdABoAHIAZQBpAHQAegAvAGgAdAB0AHAAYgBpAG4AXABcACIAXABcAG4ALQAgAFwAXAAiAGQAbwBjAGsAZQByACAAcgB1AG4AIAAtAGQAIAAtAHAAIAA3ADAAMAAwADoAOAAwACAAawBlAG4AbgBlAHQAaAByAGUAaQB0AHoALwBoAHQAdABwAGIAaQBuAFwAXAAiAFwAXABuAC0AIABcAFwAIgBkAG8AYwBrAGUAcgAgAHAAdQBsAGwAIABtAHUAdAB6AGUAbAAvAGEAbABsAC0AaQBuAC0AbwBuAGUALQBoAGEAYwBrAGEAegBvAG4AOgBwAG8AcwB0AGkAbgBzAHQAYQBsAGwAXABcACIAXABcAG4ALQAgAFwAXAAiAGQAbwBjAGsAZQByACAAcgB1AG4AIAAtAGQAIAAtAHAAIAA4ADAAMAAwADoAOAAwACAAbQB1AHQAegBlAGwALwBhAGwAbAAtAGkAbgAtAG8AbgBlAC0AaABhAGMAawBhAHoAbwBuADoAcABvAHMAdABpAG4AcwB0AGEAbABsACAAcwB1AHAAZQByAHYAaQBzAG8AcgBkACAALQBuAFwAXAAiAFwAXABuAC0AIABcAFwAIgBkAG8AYwBrAGUAcgAgAHAAdQBsAGwAIABzAHcAYQBnAGcAZQByAGEAcABpAC8AcABlAHQAcwB0AG8AcgBlAFwAXAAiAFwAXABuAC0AIABcAFwAIgBkAG8AYwBrAGUAcgAgAHIAdQBuACAALQBkACAALQBwACAAOQAwADAAMAA6ADgAMAA4ADAAIABzAHcAYQBnAGcAZQByAGEAcABpAC8AcABlAHQAcwB0AG8AcgBlAFwAXAAiAFwAXABuAC0AIABcAFwAIgBkAGEAdABlAFwAXAAiAFwAXABuAFwAXABuAA=="
-
-        }
-      }
     }
 
   ]
