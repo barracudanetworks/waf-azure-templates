@@ -1,4 +1,4 @@
-# Barracuda Web Application Firewall for Azure - Quickstart Lab with Vulnerable VM Apps
+# Barracuda WAF-as-a-Service for Azure - Quickstart Lab with Vulnerable VM Apps
 
 ## Introduction
 This Azure Resource Manager template will deploy a pair (or whatever number you request) of Barracuda Web Application Firewalls into their own Virtual Network with a 
@@ -25,8 +25,7 @@ The package provides a deploy.ps1 and deploy.sh for Powershell or Azure CLI base
 ## Deployed resources
 Following resources will be created by the template:
 - One Azure VNET with 2 subnets (1 for the WAF and a second for the web server)
-- One external Basic Azure Load Balancer containing the deployed virtual machines with a public IP and services for IPSEC and TINA VPN tunnels available
-- Two Barracuda Web Application Firewall virtual machines
+- One external Basic Azure Load Balancer containing the deployed virtual machines with a public IP and services for HTTP, HTTPS and ports listed below for each app.
 - Both WAF systems are deployed in an Availability Set
 - One Unbuntu web server with docker images deployed.
 

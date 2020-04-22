@@ -480,7 +480,7 @@
                 "id": "[variables('lbPoolID')]"
               },
               "protocol": "Tcp",
-              "frontendPort": 80,
+              "frontendPort": 5000,
               "backendPort": 5000,
               "enableFloatingIP": false,
               "idleTimeoutInMinutes": 5,
