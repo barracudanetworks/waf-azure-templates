@@ -30,7 +30,13 @@
     "vNETName": {
       "type": "String"
     },
-    "subnetName": {
+    "externalSubnetName": {
+      "type": "String",
+      "metadata": {
+        "description": "Unique DNS Name for the Public IP used to access the WAF."
+      }
+    },
+    "internalSubnetName": {
       "type": "String",
       "metadata": {
         "description": "Unique DNS Name for the Public IP used to access the WAF."
@@ -66,25 +72,26 @@
     }
   },
   "variables": {
-    "computeApiVersion": "2017-03-30",
-    "networkApiVersion": "2017-08-01",
+    "computeApiVersion": "2019-07-01",
+    "networkApiVersion": "2019-12-01",
     "imagePublisher": "barracudanetworks",
     "imageOffer": "waf",
     "wafVmName": "[concat(parameters('prefix'),'-WAF-')]",
     "WAFAVSetName": "[concat(variables('wafVmName'),'AV')]",
     "adminUsername": "azureuser",
     "loadBalancerName": "[concat(variables('wafVmName'),'LB')]",
-    "nicNamePrefix": "[concat(variables('wafVmName'),'NIC')]",
+    "nicNamePrefix": "[concat(variables('wafVmName'),'WAN-NIC-')]",
+    "nicNamePrefix2": "[concat(variables('wafVmName'),'LAN-NIC-')]",
     "publicIPAddressName": "[concat(variables('wafVmName'),'PIP')]",
     "publicIPAddressType": "Static",
     "vnetID": "[resourceId(parameters('VNetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('vNETName'))]",
-    "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]",
+    "externalsubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('externalsubnetName'))]",
+    "internalsubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('internalsubnetName'))]",
     "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('loadBalancerName'))]",
     "PublicIPID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
     "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontend')]",
     "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/loadBalancerBackend')]",
-    "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]",
-  
+    "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]"
   },
   "resources": [
     {
@@ -135,7 +142,48 @@
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
-                "id": "[variables('subnetRef')]"
+                "id": "[variables('externalsubnetRef')]"
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[concat(variables('lbID'), '/backendAddressPools/LoadBalancerBackend')]"
+                }
+              ],
+              "loadBalancerInboundNatRules": [
+                {
+                  "id": "[concat(variables('lbID'),'/inboundNatRules/',variables('wafVmName'), copyindex(1),'-MGMT',copyindex(1))]"
+                },
+                {
+                  "id": "[concat(variables('lbID'),'/inboundNatRules/',variables('wafVmName'), copyindex(1),'-SecureMGMT',copyindex(1))]"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]",
+        "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'), '/inboundNatRules/',variables('wafVmName'), copyindex(1),'-MGMT',copyindex(1))]",
+        "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'), '/inboundNatRules/',variables('wafVmName'), copyindex(1),'-SecureMGMT',copyindex(1))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('nicNamePrefix2'), copyindex(1))]",
+      "apiVersion": "[variables('networkApiVersion')]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "nicLoop",
+        "count": "[parameters('numberOfInstances')]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('internalsubnetRef')]"
               },
               "loadBalancerBackendAddressPools": [
                 {
@@ -326,12 +374,16 @@
           "networkInterfaces": [
             {
               "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicNamePrefix'),copyindex(1)))]"
+            },
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicNamePrefix2'),copyindex(1)))]"
             }
           ]
         }
       },
       "dependsOn": [
         "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrefix'), copyindex(1))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrefix2'), copyindex(1))]",
         "[concat('Microsoft.Compute/availabilitySets/', variables('WAFAVSetName'))]"
       ]
     }

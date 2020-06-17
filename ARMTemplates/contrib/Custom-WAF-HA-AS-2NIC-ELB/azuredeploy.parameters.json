@@ -17,7 +17,10 @@
       "vNetName": {
         "value": "CUDA-VNET"
       },
-      "subnetName": {
+      "externalSubnetName": {
+        "value": "CUDA-SUBNET-WAF"
+      },
+      "internalSubnetName": {
         "value": "CUDA-SUBNET-WAF"
       },
       "license": {
