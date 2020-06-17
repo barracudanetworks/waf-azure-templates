@@ -72,8 +72,6 @@
     }
   },
   "variables": {
-    "computeApiVersion": "2019-07-01",
-    "networkApiVersion": "2019-12-01",
     "imagePublisher": "barracudanetworks",
     "imageOffer": "waf",
     "wafVmName": "[concat(parameters('prefix'),'-WAF-')]",
@@ -97,7 +95,7 @@
     {
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('publicIPAddressName')]",
-      "apiVersion": "[variables('networkApiVersion')]",
+      "apiVersion": "2019-12-01",
       "location": "[resourceGroup().location]",
       "tags": {
         "displayName": "wafPublicIPAddress"
@@ -115,7 +113,7 @@
         "name": "Aligned"
       },
       "name": "[variables('WAFAVSetName')]",
-      "apiVersion": "[variables('computeApiVersion')]",
+      "apiVersion": "2019-07-01",
       "location": "[resourceGroup().location]",
       "tags": {
         "displayName": "WAFAvailabilitySet"
@@ -129,7 +127,7 @@
     {
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(variables('nicNamePrefix'), copyindex(1))]",
-      "apiVersion": "[variables('networkApiVersion')]",
+      "apiVersion": "2019-12-01",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "nicLoop",
@@ -170,7 +168,7 @@
     {
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(variables('nicNamePrefix2'), copyindex(1))]",
-      "apiVersion": "[variables('networkApiVersion')]",
+      "apiVersion": "2019-12-01",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "nicLoop",
@@ -184,20 +182,7 @@
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
                 "id": "[variables('internalsubnetRef')]"
-              },
-              "loadBalancerBackendAddressPools": [
-                {
-                  "id": "[concat(variables('lbID'), '/backendAddressPools/LoadBalancerBackend')]"
-                }
-              ],
-              "loadBalancerInboundNatRules": [
-                {
-                  "id": "[concat(variables('lbID'),'/inboundNatRules/',variables('wafVmName'), copyindex(1),'-MGMT',copyindex(1))]"
-                },
-                {
-                  "id": "[concat(variables('lbID'),'/inboundNatRules/',variables('wafVmName'), copyindex(1),'-SecureMGMT',copyindex(1))]"
-                }
-              ]
+              }          
             }
           }
         ]
@@ -211,7 +196,7 @@
     {
       "type": "Microsoft.Network/loadBalancers",
       "name": "[variables('loadBalancerName')]",
-      "apiVersion": "[variables('networkApiVersion')]",
+      "apiVersion": "2019-12-01",
       "location": "[resourceGroup().location]",
       "tags": {
         "displayName": "WAFExternalLB"
@@ -292,7 +277,7 @@
     {
       "type": "Microsoft.Network/loadBalancers/inboundNatRules",
       "name": "[concat(variables('loadBalancerName'),'/',variables('wafVmName'), copyindex(1),'-MGMT',copyIndex(1))]",
-      "apiVersion": "[variables('networkApiVersion')]",
+      "apiVersion": "2019-12-01",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "lbMGMTLoop",
@@ -313,7 +298,7 @@
     {
       "type": "Microsoft.Network/loadBalancers/inboundNatRules",
       "name": "[concat(variables('loadBalancerName'),'/',variables('wafVmName'), copyindex(1),'-SecureMGMT',copyIndex(1))]",
-      "apiVersion": "[variables('networkApiVersion')]",
+      "apiVersion": "2019-12-01",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "lbSecureMGMTLoop",
@@ -334,7 +319,7 @@
     {
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(variables('wafVmName'), copyindex(1))]",
-      "apiVersion": "[variables('computeApiVersion')]",
+      "apiVersion": "2019-07-01",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "virtualMachineLoop",
@@ -373,9 +358,15 @@
         "networkProfile": {
           "networkInterfaces": [
             {
+              "properties": {
+                "primary": true
+              },
               "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicNamePrefix'),copyindex(1)))]"
             },
             {
+              "properties": {
+                "primary": false
+              },
               "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicNamePrefix2'),copyindex(1)))]"
             }
           ]
