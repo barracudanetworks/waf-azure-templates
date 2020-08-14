@@ -17,8 +17,8 @@ You can enable programatic deployment via Powershell using the Cloud Shell featu
 
 The package provides a deploy.ps1 and deploy.sh for Powershell or Azure CLI based deployments. This can be peformed from the Azure Portal as well as the any system that has either of these scripting infrastructures installed. Or you can deploy from the Azure Portal using the provided link.
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fbarracudanetworks%2Fngf-azure-templates%2Fmaster%2Fcontrib%2FCGF-Quickstart-HA-1NIC-AS-ELB-STD%2Fazuredeploy.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
-<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fbarracudanetworks%2Fngf-azure-templates%2Fmaster%2Fcontrib%2FCGF-Quickstart-HA-1NIC-AS-ELB-STD%2Fazuredeploy.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fbarracudanetworks%2Fwaf-azure-templates%2Fmaster%2Fcontrib%2FQuickstart-WAF-Lab%2Fazuredeploy.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fbarracudanetworks%2Fwaf-azure-templates%2Fmaster%2Fcontrib%2FQuickstart-WAF-Lab%2Fazuredeploy.json" target="_blank">
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
 
@@ -31,7 +31,7 @@ Following resources will be created by the template:
 
 
 ##Next Steps
-After succesfull deployment you should be able to access the WAF via it's management GUI http://<LBPublicIP>:8001
+After succesfull deployment you should be able to access the WAF via it's management GUI http://<LBPublicIP>:8001 if you selected PAYG then you can immediately use the Secure https://<LBPublicIP>:8443
 
 ## Post Deployment Configuration
 Once provisioned you will be able to access via the DNS name or Public IP of the WAF's load balancer a series of websites designed to operate with poor security. 

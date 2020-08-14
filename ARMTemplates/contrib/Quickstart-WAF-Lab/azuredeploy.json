@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
     "adminPassword": {
@@ -21,7 +21,6 @@
         "description": "Unique DNS Name for the Public IP used to access the WAF."
       }
     },
-
     "license": {
       "allowedValues": [
         "hourly",
@@ -44,27 +43,6 @@
       "metadata": {
         "description": "Size of instances"
       }
-    },
-    "vNetAddressSpace": {
-      "type": "string",
-      "metadata": {
-        "description": "Network range of the VNET (e.g. 172.16.136.0/22)"
-      },
-      "defaultValue": "172.16.136.0/22"
-    },
-    "subnetWAF": {
-      "type": "string",
-      "metadata": {
-        "description": "Network range of the Subnet containing the NextGen Firewall (e.g. 172.16.136.0/24)"
-      },
-      "defaultValue": "172.16.136.0/24"
-    },
-    "subnetWeb": {
-      "type": "string",
-      "metadata": {
-        "description": "Network range of the red subnet (e.g. 172.16.137.0/24)"
-      },
-      "defaultValue": "172.16.137.0/24"
     }
 
   },
@@ -72,6 +50,9 @@
     "numberofInstances":  "2",
     "computeApiVersion": "2017-03-30",
     "networkApiVersion": "2017-08-01",
+    "vNetAddressSpace": "172.16.136.0/22",
+    "subnetWAF": "172.16.136.0/24",
+    "subnetWeb": "172.16.137.0/24",
     "imagePublisher": "barracudanetworks",
     "imageOffer": "waf",
     "wafVmName": "[concat(parameters('prefix'),'-WAF-')]",
@@ -96,11 +77,9 @@
     "frontEndIPConfigID2": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontend2')]",
     "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/loadBalancerBackend')]",
     "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]",
-    "lbhttpsProbeID": "[concat(variables('lbID'),'/probes/httpsProbe')]",
     "vmnameImagePublisher": "Canonical",
     "vmnameImageOffer": "UbuntuServer",
     "OSVersion": "18.04-LTS",
-    "webVmSize": "Standard_D2_v2",
     "vmSubnetRef": "[concat(variables('vnetID'), '/subnets/', variables('subnetNameWeb'))]",
     "webVMNicName": "[concat(variables('vmName'), 'NetworkInterface')]",
     "osDiskType": "Standard_LRS",
@@ -180,14 +159,14 @@
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
-            "[parameters('vNetAddressSpace')]"
+            "[variables('vNetAddressSpace')]"
           ]
         },
         "subnets": [
           {
             "name": "[variables('subnetNameWAF')]",
             "properties": {
-              "addressPrefix": "[parameters('subnetWAF')]",
+              "addressPrefix": "[variables('subnetWAF')]",
               "networkSecurityGroup": {
                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
               }
@@ -196,7 +175,7 @@
           {
             "name": "[variables('subnetNameWeb')]",
             "properties": {
-              "addressPrefix": "[parameters('subnetWeb')]"
+              "addressPrefix": "[variables('subnetWeb')]"
             }
           }
         ]
@@ -725,8 +704,8 @@
             }
           },
           "imageReference": {
-            "publisher": "Canonical",
-            "offer": "UbuntuServer",
+            "publisher": "[variables('vmnameImagePublisher')]",
+            "offer": "[variables('vmnameImageOffer')]",
             "sku": "[variables('OSVersion')]",
             "version": "latest"
           }
