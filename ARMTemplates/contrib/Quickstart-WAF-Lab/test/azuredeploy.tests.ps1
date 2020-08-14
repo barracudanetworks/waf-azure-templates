@@ -26,8 +26,8 @@ Function random-password ($length = 15)
 }
 
 $templateName = "Quickstart-WAF-Lab"
-$sourcePath = "$env:BUILD_SOURCESDIRECTORY\contrib\$templateName"
-$scriptPath = "$env:BUILD_SOURCESDIRECTORY\contrib\$templateName\test"
+$sourcePath = "$env:BUILD_SOURCESDIRECTORY\ARMTemplates\contrib\$templateName"
+$scriptPath = "$env:BUILD_SOURCESDIRECTORY\ARMTemplates\contrib\$templateName\test"
 $templateFileName = "azuredeploy.json"
 $templateFileLocation = "$sourcePath\$templateFileName"
 $templateMetadataFileName = "metadata.json"
