@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
     "adminPassword": {
@@ -77,7 +77,6 @@
     "imagePublisher": "barracudanetworks",
     "imageOffer": "waf",
     "wafVmName": "[concat(parameters('prefix'),'-WAF-')]",
-    "WAFAVSetName": "[concat(variables('wafVmName'),'AV')]",
     "adminUsername": "azureuser",
     "loadBalancerName": "[concat(variables('wafVmName'),'LB')]",
     "nicNamePrefix": "[concat(variables('wafVmName'),'NIC')]",
@@ -90,7 +89,7 @@
     "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontend')]",
     "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/loadBalancerBackend')]",
     "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]",
-    "lbhttpsProbeID": "[concat(variables('lbID'),'/probes/httpsProbe')]"
+    "maxZones": 2
   },
   "resources": [
     {
@@ -101,6 +100,12 @@
       "tags": {
         "displayName": "wafPublicIPAddress"
       },
+      "sku": {
+        "name": "Standard"
+      },
+      "zones": [
+        "1"
+      ],
       "properties": {
         "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
         "dnsSettings": {
@@ -108,24 +113,7 @@
         }
       }
     },
-    {
-      "type": "Microsoft.Compute/availabilitySets",
-      "sku": {
-        "name": "Aligned"
-      },
-      "name": "[variables('WAFAVSetName')]",
-      "apiVersion": "[variables('computeApiVersion')]",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "displayName": "WAFAvailabilitySet"
-      },
-      "properties": {
-        "platformFaultDomainCount": 2,
-        "platformUpdateDomainCount": 5
-      },
-      "dependsOn": []
-    },
-    {
+     {
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(variables('nicNamePrefix'), copyindex(1))]",
       "apiVersion": "[variables('networkApiVersion')]",
@@ -173,6 +161,9 @@
       "location": "[resourceGroup().location]",
       "tags": {
         "displayName": "WAFExternalLB"
+      },
+      "sku": {
+        "name": "Standard"
       },
       "properties": {
         "frontendIPConfigurations": [
@@ -298,15 +289,15 @@
         "name": "virtualMachineLoop",
         "count": "[parameters('numberOfInstances')]"
       },
+      "zones": [
+          "[string(add(mod(copyIndex(0), variables('maxZones')), 1))]"
+      ],
       "plan": {
         "name": "[parameters('license')]",
         "Product": "waf",
         "Publisher": "barracudanetworks"
       },
       "properties": {
-        "availabilitySet": {
-          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('WAFAVSetName'))]"
-        },
         "hardwareProfile": {
           "vmSize": "[parameters('vmSize')]"
         },
@@ -337,9 +328,8 @@
         }
       },
       "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrefix'), copyindex(1))]",
-        "[concat('Microsoft.Compute/availabilitySets/', variables('WAFAVSetName'))]"
-      ]
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrefix'), copyindex(1))]"
+              ]
     }
   ]
 }

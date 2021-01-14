@@ -1,0 +1,36 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "adminPassword": {
+        "value": "GEN-PASSWORD"
+      },
+      "prefix": {
+        "value": "CUDA"
+      },
+      "dnsNameForLBIP": {
+          "value": "myuniquednsname"
+      },
+      "vNetResourceGroup": {
+        "value": "CUDA-VNET-RG"
+      },
+      "vNetName": {
+        "value": "CUDA-VNET"
+      },
+      "externalSubnetName": {
+        "value": "CUDA-SUBNET-WAF"
+      },
+      "internalSubnetName": {
+        "value": "CUDA-SUBNET-WAF"
+      },
+      "license": {
+        "value": "byol"
+      },
+      "vmSize": {
+        "value": "Standard_DS1_v2"
+      },
+      "numberOfInstances": {
+          "value": 2
+      }
+    }
+  }
