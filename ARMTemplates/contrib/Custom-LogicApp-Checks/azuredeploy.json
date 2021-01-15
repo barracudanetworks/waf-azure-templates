@@ -26,14 +26,12 @@
             "metadata": {
                 "description": "Name of the WAF service that's values are being compared"
             },
-            "defaultValue": "test",
             "type": "String"
         },
         "wafaddress": {
             "metadata": {
                 "description": "First part of URL for WAF e.g https://myipaddress:portnumber"
             },
-            "defaultValue": "http://157.55.166.29:8000",
             "type": "String"
         },
         "connections_azuretables_name": {
@@ -48,7 +46,6 @@
              "metadata": {
             "description": "Email address to receive notifictation of change"
                             },
-            "defaultValue": "gallen@barracuda.com",
             "type": "String"
         },
         
