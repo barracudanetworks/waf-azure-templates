@@ -16,15 +16,15 @@
             "defaultValue": "waftlscompare",
             "type": "String"
         },
-        "Password": {
+        "wafPassword": {
             "metadata": {
                 "description": "Secure password for the WAF API access to use"
             },
             "type": "SecureString"
         },
-        "servicename": {
+        "wafServiceName": {
             "metadata": {
-                "description": "Name of the WAF service that's values are being compared"
+                "description": "Name of the WAF service that you wish to collect data on"
             },
             "type": "String"
         },
@@ -156,11 +156,11 @@
                             "type": "Object"
                         },
                         "Password": {
-                            "defaultValue": "[parameters('Password')]",
+                            "defaultValue": "[parameters('wafPassword')]",
                             "type": "SecureString"
                         },
                         "servicename": {
-                            "defaultValue": "[parameters('servicename')]",
+                            "defaultValue": "[parameters('wafServicename')]",
                             "type": "String"
                         },
                         "wafaddress": {
