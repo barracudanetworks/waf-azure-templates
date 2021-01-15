@@ -83,7 +83,7 @@
     "PublicIPID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
     "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontend')]",
     "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/loadBalancerBackend')]",
-    "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]",
+    "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]"
   
   },
   "resources": [
