@@ -30,7 +30,7 @@ Following a succesful deployment if you wish this to send emails you will need t
 4. You will now be asked to Authorised the Office365 account, click on the Authorise button and complete the instructions to sign into Office365.  ![authorise](images/authorise365.png)
 5. Lastly if the authorisation was succesfull Save the changes. ![Successful](images/success.png)
 
-At this point you should based 
+At this point you should be ready to start receiving notifications if any of the TLS settings change on the service you have selected for monitoring. Please take a look at the customisation options for more details on the structure should you wish to modify
 
 
 ## Deployed resources
@@ -47,6 +47,7 @@ The script is configured to email a notification out when it runs on if the sett
 
 You can edit the notification email content by changing the values within "Set EmailBody True" and "Set EmailBody False" sections. 
 ![edit notifications](images/editnotifications.png)
+
 
 You can also customise the objects being compared, by editing the values in a few places. 
 - You need to edit the Insert or Merge Entity as this writes to table storage the values collected from the WAF for the next comparison. In here, you can add fields to be written to table storage. Note the Row Key is the name of the service being collected. ![example merge](images/examplemerge.png)

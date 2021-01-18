@@ -199,6 +199,7 @@
                                     "inputs": {
                                         "body": {
                                             "Body": "<p>@{variables('EmailBody')}</p>",
+                                            "Importance": "Low",
                                             "Subject": "TLS Matching for  @{parameters('servicename')}",
                                             "To": "[parameters('notificationemailAddress')]"
                                         },
@@ -240,6 +241,7 @@
                                         "inputs": {
                                             "body": {
                                                 "Body": "<p>@{variables('EmailBody')}</p>",
+                                                "Importance": "High",
                                                 "Subject": "A change of TLS settings was found for @{parameters('servicename')}",
                                                 "To": "[parameters('notificationemailAddress')]"
                                             },
@@ -257,6 +259,7 @@
                                         "type": "SetVariable",
                                         "inputs": {
                                             "name": "EmailBody",
+                                            //when using the designer view the custom expressions added here will be wrong. Use the code view and this example on how to customise.
                                             "value": "<p> TLS settings have changed\n<table>\n<tr>><td>Setting</td><td>Current WAF </td><td>Previous State</td></tr>\n<tr><td>TLS1</td><td>@{concat(body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1'])}</td><td>@{body('TableData')?['tls1']}</td></tr>\n<tr><td>TLS1.1</td><td>\n@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-1']} </td><td>@{body('TableData')?['tls1_1']}</td></tr>\n<tr><td>TLS1.2</td><td>\n@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-2']}</td><td>@{body('TableData')?['tls1_2']}</td></tr>\n<tr><td>TLS1.3</td><td>\n@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-3']}</td><td>@{body('TableData')?['tls1_3']}</td></tr>\n</table>"
                                         }
                                     }
@@ -371,6 +374,7 @@
                             "inputs": {
                                 "body": {
                                     "StringField": 1,
+                                    //take a note of the LastestFromWAF inserting the parameter servicename. When using the UI this parameter is not used and the static servicename value from the earlier LastestFromWAF query will be used. Replace it for automation
                                     "tls1": "@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1']}",
                                     "tls1_1": "@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-1']}",
                                     "tls1_2": "@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-2']}",
@@ -382,6 +386,7 @@
                                     }
                                 },
                                 "method": "patch",
+                                //note the table RowKey is based on the parameter value. 
                                 "path": "/Tables/@{encodeURIComponent('waftable')}/entities(PartitionKey='@{encodeURIComponent('0')}',RowKey='@{encodeURIComponent(parameters('servicename'))}')"
                             }
                         },
