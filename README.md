@@ -10,6 +10,9 @@ The Barracuda Web Application Firewall for Azure is a scalable security solution
 
 ![alt](https://www.barracuda.com/assets/img/sections/programs/azure/img_app-security_diagram2.png)
 
+## Navigating this Repository
+In this repository you will find Azure Resource Manager (ARM) templates to assist you with deploying into Azure public cloud environments.
+
 
 
 

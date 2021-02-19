@@ -1,0 +1,44 @@
+{
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workbookSourceId": {
+			"type": "string",
+			"metadata": {
+				"description": "The id of resource instance to which the workbook will be associated"
+			}
+		},
+		"workbookId": {
+			"type": "string",
+			"defaultValue": "[newGuid()]",
+			"metadata": {
+				"description": "The unique guid for this workbook instance"
+			}
+		}
+	},
+	"variables": {
+		"workbookType" : "sentinel",
+		"workbookDisplayName" : "Barracuda Web Application Firewall"
+	},
+	"resources": [{
+		"name": "[parameters('workbookId')]",
+		"type": "microsoft.insights/workbooks",
+		"location": "[resourceGroup().location]",
+		"apiVersion": "2018-06-17-preview",
+		"dependsOn": [],
+		"kind": "shared",
+		"properties": {
+			"displayName": "[variables('workbookDisplayName')]",
+			"serializedData": "{\"version\":\"Notebook/1.0\",\"items\":[{\"type\":1,\"content\":{\"json\":\"## New workbook\\n---\\n\\nWelcome to your new workbook.  This area will display text formatted as markdown.\\n\\n\\nWe've included a basic analytics query to get you started. Use the `Edit` button below each section to configure it or add more sections.\"},\"name\":\"Workbook\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"CommonSecurityLog​\\n| where DeviceVendor == \\\"Barracuda\\\"\\n| sort by TimeGenerated | summarize count() by DeviceAction \",\"size\":3,\"title\":\"Action Summary\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"visualization\":\"piechart\"},\"customWidth\":\"33\",\"name\":\"Device Action\",\"styleSettings\":{\"margin\":\"10\",\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"CommonSecurityLog​\\n| where DeviceVendor == \\\"Barracuda\\\"\\n| sort by TimeGenerated | summarize count() by ApplicationProtocol, DestinationIP \",\"size\":3,\"title\":\"Application Protocol Summary\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"visualization\":\"piechart\"},\"customWidth\":\"33\",\"name\":\"Device Action\",\"styleSettings\":{\"margin\":\"10\",\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"barracuda_CL​\\n| where LogType_s == \\\"WF\\\"\\n| where AttackGroup_s contains \\\"bot\\\"\\n| sort by TimeGenerated | summarize count() by ClientIP_s \",\"size\":3,\"title\":\"Bot Mitigation\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"visualization\":\"piechart\"},\"customWidth\":\"33\",\"name\":\"Device Action\",\"styleSettings\":{\"margin\":\"10\",\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"Usage | where TimeGenerated > ago(32d) | where StartTime >= startofday(ago(31d)) and EndTime < startofday(now()) | where IsBillable == true | summarize BillableDataGB = sum(Quantity) / 1000. by bin(StartTime, 1d), DataType | render barchart\",\"size\":3,\"title\":\"Usage Summary\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\"},\"customWidth\":\"50\",\"name\":\"Device Action\",\"styleSettings\":{\"margin\":\"10\",\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"union withsource=barracuda_CL *\\n| summarize Count=count() by barracuda_CL\\n| render barchart\",\"size\":1,\"title\":\"Log Types\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\"},\"customWidth\":\"50\",\"name\":\"Log Types\",\"styleSettings\":{\"margin\":\"10\",\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"CommonSecurityLog​\\n| where DeviceVendor == \\\"Barracuda\\\"\\n| where TimeGenerated > ago(14d) | summarize count() by bin(TimeGenerated, 1d) | extend Week = iff(TimeGenerated>ago(7d), TimeGenerated, TimeGenerated + 7d) | render areachart\",\"size\":0,\"title\":\"Security Logs\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\"},\"customWidth\":\"50\",\"name\":\"Security Logs\",\"styleSettings\":{\"margin\":\"10\",\"showBorder\":true}},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"Perf | where ObjectName == \\\"Memory\\\"\",\"size\":0,\"title\":\"Memory Usage\",\"timeContext\":{\"durationMs\":1800000},\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"visualization\":\"timechart\",\"chartSettings\":{\"seriesLabelSettings\":[{\"seriesName\":\"CounterValue\",\"label\":\"Connections\"}]}},\"name\":\"Perf\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"union Perf | where InstanceName == \\\"_Total\\\" | where ObjectName == \\\"Processor\\\"\",\"size\":0,\"title\":\"Processor Usage\",\"timeContext\":{\"durationMs\":1800000},\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"visualization\":\"timechart\",\"chartSettings\":{\"seriesLabelSettings\":[{\"seriesName\":\"CounterValue\",\"label\":\"Connections\"}]}},\"name\":\"Perf\"}],\"isLocked\":false,\"fallbackResourceIds\":[\"/subscriptions/dc0a59b7-9162-4b6d-94ed-62dfb866f5d6/resourcegroups/rkresgrp/providers/microsoft.operationalinsights/workspaces/rksentinel\"],\"fromTemplateId\":\"sentinel-UserWorkbook\"}",
+			"version": "1.0",
+			"sourceId": "[parameters('workbookSourceId')]",
+			"category": "[variables('workbookType')]"
+		}
+	}],
+	"outputs": {
+		"workbookId": {
+			"type": "string",
+			"value": "[resourceId( 'microsoft.insights/workbooks', parameters('workbookId'))]"
+		}
+	},
+	  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#"
+}

@@ -1,7 +1,7 @@
-# Barracuda WAF-as-a-Service for Azure - Quickstart Lab with Vulnerable VM Apps
+# Barracuda WAF for Azure - Quickstart Lab with Vulnerable VM Apps
 
 ## Introduction
-This Azure Resource Manager template will deploy a pair (or whatever number you request) of Barracuda Web Application Firewalls into their own Virtual Network with a 
+This Azure Resource Manager template will deploy a pair (or whatever number you request) of Barracuda Web Application Firewalls into their own Virtual Network with a subnet containing a web server running a host of known vulnerable websites. 
 
 ## Prerequisites
 The solution does a check of the template when you use the provided scripts. It does require that [Programmatic Deployment](https://azure.microsoft.com/en-us/blog/working-with-marketplace-images-on-azure-resource-manager/) is enabled for the Barracuda Web Application Firewall BYOL or PAYG images. Barracuda recommends use of **D**, **D_v2**, **F** or newer series. 
@@ -11,7 +11,7 @@ You can enable programatic deployment via Powershell using the Cloud Shell featu
 `Get-AzMarketplaceTerms -Publisher "barracudanetworks" -Product "waf" -Name "byol" | Set-AzMarketplaceTerms -Accept`
 `Get-AzureRmMarketplaceTerms -Publisher "barracudanetworks" -Product "waf" -Name "hourly" | Set-AzureRmMarketplaceTerms -Accept`
 
-'az vm image terms accept --urn barracudanetworks:waf:byol:*'
+`az vm image terms accept --urn barracudanetworks:waf:byol:*`
 
 ## Deployment
 
@@ -30,7 +30,7 @@ Following resources will be created by the template:
 - One Unbuntu web server with docker images deployed.
 
 
-##Next Steps
+## Next Steps
 After succesfull deployment you should be able to access the WAF via it's management GUI http://<LBPublicIP>:8001 if you selected PAYG then you can immediately use the Secure https://<LBPublicIP>:8443
 
 ## Post Deployment Configuration
@@ -44,17 +44,17 @@ You will need to configure the WAF services to deliver the sites which are arran
 
 | Application | Port | Example Path| More Info | 
 |:------|:--------:|:--------|:--------|
-|DVWA| 1000 | http://<publiclbip>:1000/login.php | http://www.dvwa.co.uk/ |
-|Mutillidae | 2000 | http://<publiclbip>:2000/ |http://www.irongeek.com/i.php?page=mutillidae/mutillidae-deliberately-vulnerable-php-owasp-top-10 |
-|WebGoat | 3000 | http://<publiclbip>:1000/ |https://owasp.org/www-project-webgoat/|
+|DVWA| 1000 | http://`<publiclbip>`:1000/login.php | http://www.dvwa.co.uk/ |
+|Mutillidae | 2000 | http://`<publiclbip>`:2000/ |http://www.irongeek.com/i.php?page=mutillidae/mutillidae-deliberately-vulnerable-php-owasp-top-10 |
+|WebGoat | 3000 | http://`<publiclbip>`:1000/ |https://owasp.org/www-project-webgoat/|
 |BWAPP | 4000 | not currently loading | |
 |JuiceShop | 5000 | not currently loading | https://owasp.org/www-project-juice-shop/|
-|Altoro | 6001 | http://<publiclbip>:6001/ ||	
+|Altoro | 6001 | http://`<publiclbip>`:6001/ ||	
 |HTTPBin | 7000 | not currently loading || 	
-|Hackazon | 8000 | http://<publiclbip>:8000/ ||
-|Petstore | 9000| http://<publiclbip>:9000/ ||
+|Hackazon | 8000 | http://`<publiclbip>`:8000/ ||
+|Petstore | 9000| http://`<publiclbip>`:9000/ ||
 
-###Step 1
+### Step 1
 Configure the WAF services to deliver the sites.
 
 There are a number of ways to configure the WAF's in Azure to deliver these services. 
@@ -73,5 +73,4 @@ yourwafpublicip  dvwa.local mutillidae.local webgoat.local bwapp.local juiceshop
 ### Step 2 - Petstore
 The Petstore site requires some additional setup in the WAF, to allow it to deliver it's content a Website Translation rule is required. The below is shown using the DNS name for the hostsfile but this could also be <publicip>:9000
 ![Network diagram](images/image_petstore_translation.png)
-
 
