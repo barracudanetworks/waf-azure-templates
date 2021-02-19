@@ -70,8 +70,8 @@
          "ViewDescription":  "Barracuda WAF Monitoring Analysis",
          "ViewName":  "Barracuda WAF Monitoring Dashboard"
     },
-    "templateBaseUrl": "https://raw.githubusercontent.com/gallen-bar/waf-azure-templates/master/WAF-LogAnalytics-Dashboard/",
-    "workbookTemplateUrl": "[uri(variables('templateBaseUrl'), 'workbook.json')]",
+    "templateBaseUrl": "https://raw.githubusercontent.com/gallen-bar/waf-azure-templates/reorganised-structure/WAF-LogAnalytics-Dashboard/Workbooks/",
+    "workbookTemplateUrl": "[uri(variables('templateBaseUrl'), 'workbook.json')]"
 
   },
   "resources": [
