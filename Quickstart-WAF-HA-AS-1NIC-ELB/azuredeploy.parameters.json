@@ -11,14 +11,14 @@
       "dnsNameForLBIP": {
           "value": "myuniquednsname"
       },
-      "vNetResourceGroup": {
-        "value": "CUDA-VNET-RG"
+      "vNetAddressSpace": {
+        "value": "172.16.136.0/22"
       },
-      "vNetName": {
-        "value": "CUDA-VNET"
+      "subnetWAF": {
+        "value": "172.16.136.0/24"
       },
-      "subnetName": {
-        "value": "CUDA-SUBNET-WAF"
+      "subnetWeb": {
+        "value": "172.16.137.0/24"
       },
       "license": {
         "value": "byol"
@@ -28,6 +28,9 @@
       },
       "numberOfInstances": {
           "value": 2
+      },
+      "managedIdentities": {
+        "value": "yes"
       }
     }
   }

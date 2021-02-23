@@ -13,12 +13,13 @@ You can enable programatic deployment via Powershell using the Cloud Shell featu
 
 'az vm image terms accept --urn barracudanetworks:waf:byol:*'
 
+
 ## Deployment
 
 The package provides a deploy.ps1 and deploy.sh for Powershell or Azure CLI based deployments. This can be peformed from the Azure Portal as well as the any system that has either of these scripting infrastructures installed. Or you can deploy from the Azure Portal using the provided link.
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fbarracudanetworks%2Fngf-azure-templates%2Fmaster%2Fcontrib%2FCGF-Quickstart-HA-1NIC-AS-ELB-STD%2Fazuredeploy.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
-<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fbarracudanetworks%2Fngf-azure-templates%2Fmaster%2Fcontrib%2FCGF-Quickstart-HA-1NIC-AS-ELB-STD%2Fazuredeploy.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fbarracudanetworks%2Fwaf-azure-templates%2Fmaster%2FQuickstart-WAF-HA-AS-1NIC-ELB%2Fazuredeploy.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fbarracudanetworks%2Fwaf-azure-templates%2Fmaster%2FQuickstart-WAF-HA-AS-1NIC-ELB%2Fazuredeploy.json" target="_blank">
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
 
@@ -30,6 +31,5 @@ Following resources will be created by the template:
 - Both WAF systems are deployed in an Availability Set
 
 
-
-##Next Steps
-After succesfull deployment you should be able to access the WAF via it's management GUI http://<LBPublicIP>:8001 and http://<LBPublicIP>:8002
+## Next Steps
+After succesfull deployment you should be able to access the WAF(s) via their management GUI http://<LBPublicIP>:8001 and http://<LBPublicIP>:8002 and so forth

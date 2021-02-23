@@ -25,9 +25,9 @@ Function random-password ($length = 15)
     return $password
 }
 
-$templateName = "Quickstart-WAF-Lab"
-$sourcePath = "$env:BUILD_SOURCESDIRECTORY\ARMTemplates\contrib\$templateName"
-$scriptPath = "$env:BUILD_SOURCESDIRECTORY\ARMTemplates\contrib\$templateName\test"
+$templateName = "Quickstart-WAF-HA-AS-1NIC-ELB"
+$sourcePath = "$env:BUILD_SOURCESDIRECTORY\$templateName"
+$scriptPath = "$env:BUILD_SOURCESDIRECTORY\$templateName\test"
 $templateFileName = "azuredeploy.json"
 $templateFileLocation = "$sourcePath\$templateFileName"
 $templateMetadataFileName = "metadata.json"
@@ -102,6 +102,7 @@ Describe "[$templateName] Template validation & test" {
         $testsAdminPassword = $testsResourceGroupName | ConvertTo-SecureString -AsPlainText -Force
         $testsVM = "$testsPrefix-VM-CGF"
         $testsResourceGroupLocation = "East US2"
+        $testDNS = "randomDNS$testsRandom"
 
         # List of all scripts + parameter files
         $testsTemplateList=@()
@@ -116,10 +117,10 @@ Describe "[$templateName] Template validation & test" {
         $testsErrorFound = $false
 
         It "Test Deployment of ARM template $templateFileName with parameter file $templateParameterFileName" {
-            (Test-AzureRmResourceGroupDeployment -ResourceGroupName $testsResourceGroupName -TemplateFile $templateFileLocation -TemplateParameterFile $templateParameterFileLocation -adminPassword $testsAdminPassword -prefix $testsPrefix).Count | Should not BeGreaterThan 0
+            (Test-AzureRmResourceGroupDeployment -ResourceGroupName $testsResourceGroupName -TemplateFile $templateFileLocation -TemplateParameterFile $templateParameterFileLocation -adminPassword $testsAdminPassword -prefix $testsPrefix -dnsNameForLBIP $testDNS).Count | Should not BeGreaterThan 0
         }
         It "Deployment of ARM template $templateFileName with parameter file $templateParameterFileName" {
-            $resultDeployment = New-AzureRmResourceGroupDeployment -ResourceGroupName $testSResourceGroupName -TemplateFile $templateFileLocation -TemplateParameterFile $templateParameterFileLocation -adminPassword $testsAdminPassword -prefix $testsprefix
+            $resultDeployment = New-AzureRmResourceGroupDeployment -ResourceGroupName $testSResourceGroupName -TemplateFile $templateFileLocation -TemplateParameterFile $templateParameterFileLocation -adminPassword $testsAdminPassword -prefix $testsprefix -dnsNameForLBIP $testDNS
             Write-Host "Provisioning result:"
             Write-Host ($resultDeployment | Format-Table | Out-String)
             Write-Host ("Provisioning state: " + $resultDeployment.ProvisioningState)

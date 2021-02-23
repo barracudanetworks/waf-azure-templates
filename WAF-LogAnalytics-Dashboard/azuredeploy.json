@@ -2287,6 +2287,10 @@
                "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "linkedTemplate",
+            "dependsOn": [
+                "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]",
+                "[concat('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'), '/views/', variables('Barracuda_perf_view').Name)]"
+            ],
             "properties": {
                 "mode": "incremental",
                 "templateLink": {
@@ -2294,8 +2298,12 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                  "workbookSourceId": "[Concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]"
-
+                  "workbookSourceId": {
+                    "value" : "[Concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]"
+                  },
+                  "workbookType": {
+                    "value" : "workbook"
+                  }
                 }
             }
         }
