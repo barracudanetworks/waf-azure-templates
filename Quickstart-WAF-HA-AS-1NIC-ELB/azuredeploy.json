@@ -107,6 +107,7 @@
     "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/loadBalancerBackend')]",
     "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]",
     "Contributor": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]"
+ 
   },
   "resources": [
     {
@@ -116,7 +117,7 @@
         "count": "[parameters('numberOfInstances')]"
       },
       "type": "Microsoft.Authorization/roleAssignments",
-      "name": "[guid(variables('wafVmName'), copyindex(1),resourceGroup().id, deployment().name)]",
+      "name": "[guid(variables('wafVmName'),resourceGroup().id, deployment().name)]",
       "apiVersion": "2017-09-01",
       "properties": {
         "roleDefinitionId": "[variables('Contributor')]",

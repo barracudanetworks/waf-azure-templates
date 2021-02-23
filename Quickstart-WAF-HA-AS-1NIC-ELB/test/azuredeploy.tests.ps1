@@ -64,6 +64,7 @@ Describe "[$templateName] Template validation & test" {
         
         It 'Creates the expected Azure resources' {
             $expectedResources = 
+                                'Microsoft.Authorization/roleAssignments',
                                 'Microsoft.Compute/AvailabilitySets'
                                  'Microsoft.Network/networksecurityGroups',
                                  'Microsoft.Network/virtualNetworks',
@@ -81,6 +82,7 @@ Describe "[$templateName] Template validation & test" {
             $expectedTemplateParameters = 'adminPassword',
                                            'dnsNameForLBIP',
                                            'license',
+                                           'managedIdentities',
                                            'numberofInstances',
                                            'prefix',
                                             'subnetWAF',
