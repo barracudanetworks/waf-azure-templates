@@ -63,6 +63,17 @@
       "metadata": {
         "description": "Size of instances"
       }
+    },
+    "managedIdentities": {
+      "type": "string",
+      "allowedValues": [
+        "yes",
+        "no"
+      ],
+      "defaultValue": "no",
+      "metadata": {
+        "description": "Deploy with managed identities"
+      }
     }
   },
   "variables": {
@@ -83,10 +94,28 @@
     "PublicIPID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
     "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontend')]",
     "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/loadBalancerBackend')]",
-    "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]"
-  
+    "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]",
+    "Contributor": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]"
   },
   "resources": [
+    {
+      "condition": "[equals(parameters('managedIdentities'),'yes')]",
+      "copy": {
+        "name": "virtualMachineLoop",
+        "count": "[parameters('numberOfInstances')]"
+      },
+      "type": "Microsoft.Authorization/roleAssignments",
+      "name": "[guid(variables('wafVmName'), copyindex(1),resourceGroup().id, deployment().name)]",
+      "apiVersion": "2017-09-01",
+      "properties": {
+        "roleDefinitionId": "[variables('Contributor')]",
+        "principalId": "[reference(concat(variables('wafVmName'), copyindex(1)), '2018-06-01', 'Full').identity.principalId]",
+        "scope": "[resourceGroup().id]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', concat(variables('wafVmName'), copyindex(1)))]"
+      ]
+    },
     {
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('publicIPAddressName')]",
@@ -267,6 +296,9 @@
       "name": "[concat(variables('loadBalancerName'),'/',variables('wafVmName'), copyindex(1),'-SecureMGMT',copyIndex(1))]",
       "apiVersion": "[variables('networkApiVersion')]",
       "location": "[resourceGroup().location]",
+      "identity": {
+         "type": "[if(equals(parameters('managedIdentities'),'yes'),'SystemAssigned','None')]"
+      },
       "copy": {
         "name": "lbSecureMGMTLoop",
         "count": "[parameters('numberOfInstances')]"
