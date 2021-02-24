@@ -54,26 +54,24 @@ Describe "[$templateName] Template validation & test" {
         It 'Converts from JSON and has the expected properties' {
             $expectedProperties = '$schema',
                                   'contentVersion',
-								  'outputs',
-                                  'parameters',
+								  'parameters',
                                   'resources',                                
                                   'variables'
             $templateProperties = (get-content $templateFileLocation | ConvertFrom-Json -ErrorAction SilentlyContinue) | Get-Member -MemberType NoteProperty | % Name
             $templateProperties | Should Be $expectedProperties
         }
-        
+        #This is what's defined in the template under resources
         It 'Creates the expected Azure resources' {
             $expectedResources = 
                                 'Microsoft.Authorization/roleAssignments',
-                                'Microsoft.Compute/AvailabilitySets'
-                                 'Microsoft.Network/networksecurityGroups',
-                                 'Microsoft.Network/virtualNetworks',
-                                 'Microsoft.Network/publicIPAddresses',
-                                 'Microsoft.Network/loadBalancers',
-                                 'Microsoft.Network/networkInterfaces',
-                                 'Microsoft.Network/networkInterfaces',
-                                 'Microsoft.Compute/virtualMachines',
-                                 'Microsoft.Compute/virtualMachines'
+                                'Microsoft.Compute/availabilitySets',
+                                'Microsoft.Network/publicIPAddresses',
+                                'Microsoft.Network/virtualNetworks',
+                                'Microsoft.Network/networksecurityGroups',
+                                'Microsoft.Network/networkInterfaces',
+                                'Microsoft.Network/loadBalancers',
+                                'Microsoft.Network/loadBalancers/inboundNatRules',
+                                'Microsoft.Compute/virtualMachines'
             $templateResources = (get-content $templateFileLocation | ConvertFrom-Json -ErrorAction SilentlyContinue).Resources.type
             $templateResources | Should Be $expectedResources
         }
@@ -104,7 +102,7 @@ Describe "[$templateName] Template validation & test" {
         $testsAdminPassword = $testsResourceGroupName | ConvertTo-SecureString -AsPlainText -Force
         $testsVM = "$testsPrefix-VM-CGF"
         $testsResourceGroupLocation = "East US2"
-        $testDNS = "randomDNS$testsRandom"
+        $testDNS = "randomdns$testsRandom"
 
         # List of all scripts + parameter files
         $testsTemplateList=@()
@@ -113,28 +111,28 @@ Describe "[$templateName] Template validation & test" {
 
         # Set working directory & create resource group
         Set-Location $sourcePath
-        New-AzureRmResourceGroup -Name $testsResourceGroupName -Location "$testsResourceGroupLocation"
+        New-AzResourceGroup -Name $testsResourceGroupName -Location "$testsResourceGroupLocation"
 
         # Validate all ARM templates one by one
         $testsErrorFound = $false
 
         It "Test Deployment of ARM template $templateFileName with parameter file $templateParameterFileName" {
-            (Test-AzureRmResourceGroupDeployment -ResourceGroupName $testsResourceGroupName -TemplateFile $templateFileLocation -TemplateParameterFile $templateParameterFileLocation -adminPassword $testsAdminPassword -prefix $testsPrefix -dnsNameForLBIP $testDNS).Count | Should not BeGreaterThan 0
+            (Test-AzResourceGroupDeployment -ResourceGroupName $testsResourceGroupName -TemplateFile $templateFileLocation -TemplateParameterFile $templateParameterFileLocation -adminPassword $testsAdminPassword -prefix $testsPrefix -dnsNameForLBIP $testDNS).Count | Should not BeGreaterThan 0
         }
         It "Deployment of ARM template $templateFileName with parameter file $templateParameterFileName" {
-            $resultDeployment = New-AzureRmResourceGroupDeployment -ResourceGroupName $testSResourceGroupName -TemplateFile $templateFileLocation -TemplateParameterFile $templateParameterFileLocation -adminPassword $testsAdminPassword -prefix $testsprefix -dnsNameForLBIP $testDNS
+            $resultDeployment = New-AzResourceGroupDeployment -ResourceGroupName $testSResourceGroupName -TemplateFile $templateFileLocation -TemplateParameterFile $templateParameterFileLocation -adminPassword $testsAdminPassword -prefix $testsprefix -dnsNameForLBIP $testDNS
             Write-Host "Provisioning result:"
             Write-Host ($resultDeployment | Format-Table | Out-String)
             Write-Host ("Provisioning state: " + $resultDeployment.ProvisioningState)
             $resultDeployment.ProvisioningState | Should Be "Succeeded"
         }
         It "Deployment in Azure validation" {
-            $result = Get-AzureRmVM | Where-Object { $_.Name -like "$testsPrefix*" } 
+            $result = Get-AzVM | Where-Object { $_.Name -like "$testsPrefix*" } 
             Write-Host ($result | Format-Table | Out-String)
             $result | Should Not Be $null
         }
         Write-Host "Removing resourcegroup $testsResourceGroupName"
-        Remove-AzureRmResourceGroup -Name $testsResourceGroupName -Force
+        Remove-AzResourceGroup -Name $testsResourceGroupName -Force
 
     }
 

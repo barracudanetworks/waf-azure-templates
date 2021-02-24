@@ -27,7 +27,7 @@
         "description": "The name of the vNETs resource group"
       }
     },
-    "vNETName": {
+    "vNetName": {
       "type": "String"
     },
     "externalSubnetName": {
@@ -69,6 +69,18 @@
       "metadata": {
         "description": "Size of instances"
       }
+    },
+    
+    "managedIdentities": {
+      "type": "string",
+      "allowedValues": [
+        "yes",
+        "no"
+      ],
+      "defaultValue": "no",
+      "metadata": {
+        "description": "Deploy with managed identities"
+      }
     }
   },
   "variables": {
@@ -77,21 +89,44 @@
     "wafVmName": "[concat(parameters('prefix'),'-WAF-')]",
     "WAFAVSetName": "[concat(variables('wafVmName'),'AV')]",
     "adminUsername": "azureuser",
+    "nsgName": "[concat(variables('wafVmName'),'NSG')]",
     "loadBalancerName": "[concat(variables('wafVmName'),'LB')]",
     "nicNamePrefix": "[concat(variables('wafVmName'),'WAN-NIC-')]",
     "nicNamePrefix2": "[concat(variables('wafVmName'),'LAN-NIC-')]",
     "publicIPAddressName": "[concat(variables('wafVmName'),'PIP')]",
     "publicIPAddressType": "Static",
-    "vnetID": "[resourceId(parameters('VNetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('vNETName'))]",
+    "vnetID": "[resourceId(parameters('VNetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('vNetName'))]",
     "externalsubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('externalsubnetName'))]",
     "internalsubnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('internalsubnetName'))]",
     "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('loadBalancerName'))]",
     "PublicIPID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
     "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontend')]",
     "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/loadBalancerBackend')]",
-    "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]"
+    "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]",
+    "Contributor": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+     "identity": {
+        "type": "SystemAssigned"
+     }
   },
   "resources": [
+    {
+      "condition": "[equals(parameters('managedIdentities'),'yes')]",
+      "copy": {
+        "name": "virtualMachineLoop",
+        "count": "[parameters('numberOfInstances')]"
+      },
+      "type": "Microsoft.Authorization/roleAssignments",
+      "name": "[guid(concat(variables('wafVmName'),copyIndex(1)),resourceGroup().id, deployment().name)]",
+      "apiVersion": "2017-09-01",
+      "properties": {
+        "roleDefinitionId": "[variables('Contributor')]",
+        "principalId": "[reference(concat(variables('wafVmName'), copyindex(1)), '2018-06-01', 'Full').identity.principalId]",
+        "scope": "[resourceGroup().id]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', concat(variables('wafVmName'), copyindex(1)))]"
+      ]
+    },
     {
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('publicIPAddressName')]",
@@ -134,6 +169,9 @@
         "count": "[parameters('numberOfInstances')]"
       },
       "properties": {
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+        },
         "ipConfigurations": [
           {
             "name": "ipconfig1",
@@ -188,6 +226,7 @@
         ]
       },
       "dependsOn": [
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('nsgName'))]",
         "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]",
         "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'), '/inboundNatRules/',variables('wafVmName'), copyindex(1),'-MGMT',copyindex(1))]",
         "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'), '/inboundNatRules/',variables('wafVmName'), copyindex(1),'-SecureMGMT',copyindex(1))]"
@@ -325,6 +364,7 @@
         "name": "virtualMachineLoop",
         "count": "[parameters('numberOfInstances')]"
       },
+      "identity": "[if(equals(parameters('managedIdentities'),'yes'),variables('identity'),json('null'))]",
       "plan": {
         "name": "[parameters('license')]",
         "Product": "waf",
@@ -377,6 +417,73 @@
         "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrefix2'), copyindex(1))]",
         "[concat('Microsoft.Compute/availabilitySets/', variables('WAFAVSetName'))]"
       ]
+    },
+    {
+      "apiVersion": "2019-12-01",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('nsgName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "AllowHTTPInbound",
+            "properties": {
+              "description": "Allow HTTP",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AllowHTTPSInbound",
+            "properties": {
+              "description": "Allow HTTPS",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "443",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 110,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AllowUnSecureManagementAccess",
+            "properties": {
+              "description": "Allow Manangement Access",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "8000",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 120,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AllowSecureManagementAccess",
+            "properties": {
+              "description": "Allow Secure Manangement Access",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "8443",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 130,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
     }
+    
   ]
 }

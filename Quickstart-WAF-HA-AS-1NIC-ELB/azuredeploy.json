@@ -85,8 +85,6 @@
 
   },
   "variables": {
-    "computeApiVersion": "2017-03-30",
-    "networkApiVersion": "2017-08-01",
     "imagePublisher": "barracudanetworks",
     "imageOffer": "waf",
     "wafVmName": "[concat(parameters('prefix'),'-WAF-')]",
@@ -117,7 +115,7 @@
         "count": "[parameters('numberOfInstances')]"
       },
       "type": "Microsoft.Authorization/roleAssignments",
-      "name": "[guid(variables('wafVmName'),resourceGroup().id, deployment().name)]",
+      "name": "[guid(concat(variables('wafVmName'),copyIndex(1)),resourceGroup().id, deployment().name)]",
       "apiVersion": "2017-09-01",
       "properties": {
         "roleDefinitionId": "[variables('Contributor')]",
@@ -128,10 +126,27 @@
         "[concat('Microsoft.Compute/virtualMachines/', concat(variables('wafVmName'), copyindex(1)))]"
       ]
     },
+        {
+      "type": "Microsoft.Compute/availabilitySets",
+      "sku": {
+        "name": "Aligned"
+      },
+      "name": "[variables('WAFAVSetName')]",
+      "apiVersion": "2017-03-30",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "WAFAvailabilitySet"
+      },
+      "properties": {
+        "platformFaultDomainCount": 2,
+        "platformUpdateDomainCount": 5
+      },
+      "dependsOn": []
+    },
     {
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('publicIPAddressName')]",
-      "apiVersion": "[variables('networkApiVersion')]",
+      "apiVersion": "2019-12-01",
       "location": "[resourceGroup().location]",
       "tags": {
         "displayName": "wafPublicIPAddress"
@@ -144,24 +159,7 @@
       }
     },
     {
-      "type": "Microsoft.Compute/availabilitySets",
-      "sku": {
-        "name": "Aligned"
-      },
-      "name": "[variables('WAFAVSetName')]",
-      "apiVersion": "[variables('computeApiVersion')]",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "displayName": "WAFAvailabilitySet"
-      },
-      "properties": {
-        "platformFaultDomainCount": 2,
-        "platformUpdateDomainCount": 5
-      },
-      "dependsOn": []
-    },
-    {
-      "apiVersion": "[variables('networkApiVersion')]",
+      "apiVersion": "2019-12-01",
       "type": "Microsoft.Network/virtualNetworks",
       "name": "[variables('vNetName')]",
       "location": "[resourceGroup().location]",
@@ -195,7 +193,7 @@
       }
     },
     {
-      "apiVersion": "[variables('networkApiVersion')]",
+      "apiVersion": "2019-12-01",
       "type": "Microsoft.Network/networkSecurityGroups",
       "name": "[variables('nsgName')]",
       "location": "[resourceGroup().location]",
@@ -263,7 +261,7 @@
       {
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(variables('nicNamePrefix'), copyindex(1))]",
-      "apiVersion": "[variables('networkApiVersion')]",
+      "apiVersion": "2019-12-01",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "nicLoop",
@@ -296,6 +294,7 @@
         ]
       },
       "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', variables('vNetName'))]",
         "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]",
         "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'), '/inboundNatRules/',variables('wafVmName'), copyindex(1),'-MGMT',copyindex(1))]",
         "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'), '/inboundNatRules/',variables('wafVmName'), copyindex(1),'-SecureMGMT',copyindex(1))]"
@@ -304,7 +303,7 @@
     {
       "type": "Microsoft.Network/loadBalancers",
       "name": "[variables('loadBalancerName')]",
-      "apiVersion": "[variables('networkApiVersion')]",
+      "apiVersion": "2019-12-01",
       "location": "[resourceGroup().location]",
       "tags": {
         "displayName": "WAFExternalLB"
@@ -385,7 +384,7 @@
     {
       "type": "Microsoft.Network/loadBalancers/inboundNatRules",
       "name": "[concat(variables('loadBalancerName'),'/',variables('wafVmName'), copyindex(1),'-MGMT',copyIndex(1))]",
-      "apiVersion": "[variables('networkApiVersion')]",
+      "apiVersion": "2019-12-01",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "lbMGMTLoop",
@@ -406,7 +405,7 @@
     {
       "type": "Microsoft.Network/loadBalancers/inboundNatRules",
       "name": "[concat(variables('loadBalancerName'),'/',variables('wafVmName'), copyindex(1),'-SecureMGMT',copyIndex(1))]",
-      "apiVersion": "[variables('networkApiVersion')]",
+      "apiVersion": "2019-12-01",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "lbSecureMGMTLoop",
@@ -427,13 +426,15 @@
     {
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(variables('wafVmName'), copyindex(1))]",
-      "apiVersion": "[variables('computeApiVersion')]",
+      "apiVersion": "2017-03-30",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "virtualMachineLoop",
         "count": "[parameters('numberOfInstances')]"
       },
-
+      "identity": {
+         "type": "[if(equals(parameters('managedIdentities'),'yes'),'SystemAssigned','None')]"
+      },
       "plan": {
         "name": "[parameters('license')]",
         "Product": "waf",

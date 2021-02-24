@@ -43,6 +43,17 @@
       "metadata": {
         "description": "Size of instances"
       }
+    },
+        "managedIdentities": {
+      "type": "string",
+      "allowedValues": [
+        "yes",
+        "no"
+      ],
+      "defaultValue": "no",
+      "metadata": {
+        "description": "Deploy with managed identities"
+      }
     }
 
   },
@@ -84,10 +95,32 @@
     "vmSubnetRef": "[concat(variables('vnetID'), '/subnets/', variables('subnetNameWeb'))]",
     "webVMNicName": "[concat(variables('vmName'), 'NetworkInterface')]",
     "osDiskType": "Standard_LRS",
+        "Contributor": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+     "identity": {
+        "type": "SystemAssigned"
+     },
     "customcloudinit": "#cloud-config\n#\n#author: trichabadas\n#\n#Installs docker and 9 vulnerable/test docker containers to use as a firing range for labs\n#PetStore does not work at this time when accessed through a browser, so it more really 8 applications.\n#PetStore may work if some CORS settings are disabled on your browser.\n#Each application is installed on a specific port.\n#Please see the specific docker run commands to see the actual port in use for a specific application.\n#The front-end port can be changed before running this file in case you want to use any other port.\n#\n#This command sudo usermod -aG docker ${USER} usually fails, and the user cannot run docker commands without sudo\n#If this is annoying, try running it again while logged in - it will work at this point\n# \n\n#have cloud init manage the hosts file\nmanage_etc_hosts: false\n\nruncmd:\n- date\n- sudo apt-get -y update\n- sudo apt-get -y upgrade\n- sudo apt-get -y remove docker docker-engine docker.io\n- sudo apt install docker.io -y\n- sudo systemctl start docker\n- sudo systemctl enable docker\n- sudo groupadd docker\n- sleep 10\n- sudo usermod -aG docker ${USER}\n- docker pull vulnerables/web-dvwa\n- docker run -d -p 1000:80 vulnerables/web-dvwa\n- docker pull szsecurity/mutillidae\n- docker run -d -p 2000:80 szsecurity/mutillidae\n- docker pull szsecurity/webgoat\n- docker run -d -p 3000:80 szsecurity/webgoat\n- docker pull raesene/bwapp\n- docker run -d -p 4000:80 raesene/bwapp\n- docker pull bkimminich/juice-shop\n- docker run -d -p 5000:80 bkimminich/juice-shop\n- docker pull eystsen/altoro\n- docker run -d -p 6001:8080 eystsen/altoro\n- docker pull kennethreitz/httpbin\n- docker run -d -p 7000:80 kennethreitz/httpbin\n- docker pull mutzel/all-in-one-hackazon:postinstall\n- docker run -d -p 8000:80 mutzel/all-in-one-hackazon:postinstall supervisord -n\n- docker pull swaggerapi/petstore\n- docker run -d -p 9000:8080 swaggerapi/petstore\n- date\n\n"
 
   },
   "resources": [
+    {
+      "condition": "[equals(parameters('managedIdentities'),'yes')]",
+      "copy": {
+        "name": "idLoop",
+        "count": "[variables('numberOfInstances')]"
+      },
+      "type": "Microsoft.Authorization/roleAssignments",
+      "name": "[guid(concat(variables('wafVmName'),copyIndex(1)),resourceGroup().id, deployment().name)]",
+      "apiVersion": "2017-09-01",
+      "properties": {
+        "roleDefinitionId": "[variables('Contributor')]",
+        "principalId": "[reference(concat(variables('wafVmName'), copyindex(1)), '2018-06-01', 'Full').identity.principalId]",
+        "scope": "[resourceGroup().id]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', concat(variables('wafVmName'), copyindex(1)))]"
+      ]
+    },
     {
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('publicIPAddressName')]",
@@ -613,6 +646,7 @@
         "name": "virtualMachineLoop",
         "count": "[variables('numberOfInstances')]"
       },
+       "identity": "[if(equals(parameters('managedIdentities'),'yes'),variables('identity'),json('null'))]",
       "plan": {
         "name": "[parameters('license')]",
         "Product": "waf",

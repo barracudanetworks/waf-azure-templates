@@ -25,7 +25,7 @@ Function random-password ($length = 15)
     return $password
 }
 
-$templateName = "Quickstart-WAF-Lab"
+$templateName = "Custom-WAF-HA-AS-1NIC-ELB"
 $sourcePath = "$env:BUILD_SOURCESDIRECTORY\$templateName"
 $scriptPath = "$env:BUILD_SOURCESDIRECTORY\$templateName\test"
 $templateFileName = "azuredeploy.json"
@@ -65,30 +65,30 @@ Describe "[$templateName] Template validation & test" {
             $expectedResources = 
                                 'Microsoft.Authorization/roleAssignments',
                                 'Microsoft.Network/publicIPAddresses',
-                                'Microsoft.Network/publicIPAddresses',
-                                'Microsoft.Network/publicIPAddresses',
                                 'Microsoft.Compute/availabilitySets',
-                                'Microsoft.Network/virtualNetworks',
-                                'Microsoft.Network/networkSecurityGroups',
                                 'Microsoft.Network/networkInterfaces',
                                 'Microsoft.Network/loadBalancers',
                                 'Microsoft.Network/loadBalancers/inboundNatRules',
                                 'Microsoft.Network/loadBalancers/inboundNatRules',
                                 'Microsoft.Compute/virtualMachines',
-                                'Microsoft.Network/networkInterfaces'
-                                
+                                'Microsoft.Network/networksecurityGroups'
             $templateResources = (get-content $templateFileLocation | ConvertFrom-Json -ErrorAction SilentlyContinue).Resources.type
             $templateResources | Should Be $expectedResources
         }
 
+        #This is in alphabetical order rather than template order
         It 'Contains the expected parameters' {
             $expectedTemplateParameters = 'adminPassword',
                                            'dnsNameForLBIP',
                                            'license',
                                            'managedIdentities',
+                                           'numberofInstances',
                                            'prefix',
-                                            'vmSize'
-                                            
+                                           'subnetName',
+                                           'vmSize',
+                                           'vNETName',
+                                           'vNETResourceGroup'
+                                           
             $templateParameters = (get-content $templateFileLocation | ConvertFrom-Json -ErrorAction SilentlyContinue).Parameters | Get-Member -MemberType NoteProperty | % Name
             $templateParameters | Should Be $expectedTemplateParameters
         }
@@ -106,6 +106,8 @@ Describe "[$templateName] Template validation & test" {
         $testsResourceGroupLocation = "East US2"
         $testDNS = "randomdns$testsRandom"
 
+        
+
         # List of all scripts + parameter files
         $testsTemplateList=@()
         ## dummy parameter file to test default parameters
@@ -115,14 +117,18 @@ Describe "[$templateName] Template validation & test" {
         Set-Location $sourcePath
         New-AzResourceGroup -Name $testsResourceGroupName -Location "$testsResourceGroupLocation"
 
+        #Creates Custom VNET and Subnet
+        $testsSubnetConf = New-AzVirtualNetworkSubnetConfig -Name "CUDA-SUBNET-WAF" -AddressPrefix "172.16.136.0/24" 
+        New-AzVirtualNetwork -ResourceGroupName $testsResourceGroupName -Location "$testsResourceGroupLocation" -Name "CUDAQA-$testsRandom-VNET" -AddressPrefix "172.16.136.0/22" -Subnet $testsSubnetConf 
+
         # Validate all ARM templates one by one
         $testsErrorFound = $false
-
+        
         It "Test Deployment of ARM template $templateFileName with parameter file $templateParameterFileName" {
-            (Test-AzResourceGroupDeployment -ResourceGroupName $testsResourceGroupName -TemplateFile $templateFileLocation -TemplateParameterFile $templateParameterFileLocation -adminPassword $testsAdminPassword -prefix $testsPrefix -dnsNameForLBIP $testDNS).Count | Should not BeGreaterThan 0
+            (Test-AzResourceGroupDeployment -ResourceGroupName $testsResourceGroupName -TemplateFile $templateFileLocation -TemplateParameterFile $templateParameterFileLocation -adminPassword $testsAdminPassword -prefix $testsPrefix -dnsNameForLBIP $testDNS -vNetResourceGroup $testsResourceGroupName -vNETName "CUDAQA-$testsRandom-VNET" ).Count | Should not BeGreaterThan 0
         }
         It "Deployment of ARM template $templateFileName with parameter file $templateParameterFileName" {
-            $resultDeployment = New-AzResourceGroupDeployment -ResourceGroupName $testSResourceGroupName -TemplateFile $templateFileLocation -TemplateParameterFile $templateParameterFileLocation -adminPassword $testsAdminPassword -prefix $testsprefix -dnsNameForLBIP $testDNS
+            $resultDeployment = New-AzResourceGroupDeployment -ResourceGroupName $testsResourceGroupName -TemplateFile $templateFileLocation -TemplateParameterFile $templateParameterFileLocation -adminPassword $testsAdminPassword -prefix $testsprefix -dnsNameForLBIP $testDNS -vNetResourceGroup $testsResourceGroupName -vNETName "CUDAQA-$testsRandom-VNET" 
             Write-Host "Provisioning result:"
             Write-Host ($resultDeployment | Format-Table | Out-String)
             Write-Host ("Provisioning state: " + $resultDeployment.ProvisioningState)

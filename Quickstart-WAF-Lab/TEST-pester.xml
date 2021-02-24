@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<test-results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="nunit_schema_2.5.xsd" name="Pester" total="1" errors="0" failures="1" not-run="0" inconclusive="0" ignored="0" skipped="0" invalid="0" date="2021-02-24" time="15:20:42">
+  <environment clr-version="Unknown" user="gallen" machine-name="SLZ-GALLEN-LT" os-version="10.0.19041" nunit-version="2.5.8.0" user-domain="EU" platform="Microsoft Windows 10 Enterprise|C:\WINDOWS|\Device\Harddisk0\Partition4" cwd="C:\Store\waf-azure-templates\Quickstart-WAF-Lab" />
+  <culture-info current-culture="en-GB" current-uiculture="en-US" />
+  <test-suite type="TestFixture" name="Pester" executed="True" result="Failure" success="False" time="0.2284" asserts="0" description="Pester">
+    <results>
+      <test-suite type="TestFixture" name="C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1" executed="True" result="Failure" success="False" time="0.2284" asserts="0" description="C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1">
+        <results>
+          <test-case description="Error occurred in test script 'C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1'" name="Error occurred in test script 'C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1'" time="0" asserts="0" success="False" result="Failure" executed="True">
+            <failure>
+              <message>At C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1:85 char:43
++             $expectedTemplateParameters = 'adminPassword',
++                                           ~~~~~~~~~~~~~~~
+The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a property.
+
+At C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1:86 char:44
++                                            'dnsNameForLBIP',
++                                            ~~~~~~~~~~~~~~~~
+The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a property.
+
+At C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1:87 char:44
++                                            'license',
++                                            ~~~~~~~~~
+The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a property.
+
+At C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1:88 char:44
++                                            'managedIdentities',
++                                            ~~~~~~~~~~~~~~~~~~~
+The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a property.
+
+At C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1:89 char:44
++                                            'numberofInstances',
++                                            ~~~~~~~~~~~~~~~~~~~
+The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a property.
+
+At C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1:90 char:44
++                                            'prefix',
++                                            ~~~~~~~~
+The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a property.
+
+At C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1:91 char:44
++                                            'vmSize',
++                                            ~~~~~~~~
+The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a property.</message>
+              <stack-trace>at &lt;ScriptBlock&gt;, C:\Users\gallen\AppData\Local\Temp\Pester-master\Pester.psm1: line 1111</stack-trace>
+            </failure>
+          </test-case>
+        </results>
+      </test-suite>
+    </results>
+  </test-suite>
+</test-results>

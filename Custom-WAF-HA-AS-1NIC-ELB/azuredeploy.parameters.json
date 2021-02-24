@@ -14,7 +14,7 @@
       "vNetResourceGroup": {
         "value": "CUDA-VNET-RG"
       },
-      "vNetName": {
+      "vNETName": {
         "value": "CUDA-VNET"
       },
       "subnetName": {
@@ -23,11 +23,14 @@
       "license": {
         "value": "byol"
       },
-      "vmSize": {
-        "value": "Standard_DS1_v2"
+      "managedIdentities": {
+        "value": "no"
       },
       "numberOfInstances": {
-          "value": 2
+        "value": 2
+     },
+      "vmSize": {
+        "value": "Standard_DS1_v2"
       }
     }
   }

@@ -18,10 +18,10 @@
         "value": "CUDA-VNET"
       },
       "externalSubnetName": {
-        "value": "CUDA-SUBNET-WAF"
+        "value": "EXT-SUBNET-WAF"
       },
       "internalSubnetName": {
-        "value": "CUDA-SUBNET-WAF"
+        "value": "INT-SUBNET-WAF"
       },
       "license": {
         "value": "byol"
@@ -31,6 +31,9 @@
       },
       "numberOfInstances": {
           "value": 2
+      },
+      "managedIdentities": {
+        "value": "no"
       }
     }
   }

@@ -78,11 +78,12 @@
   },
   "variables": {
     "computeApiVersion": "2017-03-30",
-    "networkApiVersion": "2017-08-01",
+    "networkApiVersion": "2019-02-01",
     "imagePublisher": "barracudanetworks",
     "imageOffer": "waf",
     "wafVmName": "[concat(parameters('prefix'),'-WAF-')]",
     "WAFAVSetName": "[concat(variables('wafVmName'),'AV')]",
+    "nsgName": "[concat(parameters('prefix'),'-NSG-WAF')]",
     "adminUsername": "azureuser",
     "loadBalancerName": "[concat(variables('wafVmName'),'LB')]",
     "nicNamePrefix": "[concat(variables('wafVmName'),'NIC')]",
@@ -95,7 +96,10 @@
     "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontend')]",
     "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/loadBalancerBackend')]",
     "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]",
-    "Contributor": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]"
+    "Contributor": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+     "identity": {
+        "type": "SystemAssigned"
+     }
   },
   "resources": [
     {
@@ -105,7 +109,7 @@
         "count": "[parameters('numberOfInstances')]"
       },
       "type": "Microsoft.Authorization/roleAssignments",
-      "name": "[guid(variables('wafVmName'), copyindex(1),resourceGroup().id, deployment().name)]",
+      "name": "[guid(concat(variables('wafVmName'),copyIndex(1)),resourceGroup().id, deployment().name)]",
       "apiVersion": "2017-09-01",
       "properties": {
         "roleDefinitionId": "[variables('Contributor')]",
@@ -179,8 +183,10 @@
                   "id": "[concat(variables('lbID'),'/inboundNatRules/',variables('wafVmName'), copyindex(1),'-SecureMGMT',copyindex(1))]"
                 }
               ]
+              
             }
           }
+          
         ]
       },
       "dependsOn": [
@@ -296,9 +302,6 @@
       "name": "[concat(variables('loadBalancerName'),'/',variables('wafVmName'), copyindex(1),'-SecureMGMT',copyIndex(1))]",
       "apiVersion": "[variables('networkApiVersion')]",
       "location": "[resourceGroup().location]",
-      "identity": {
-         "type": "[if(equals(parameters('managedIdentities'),'yes'),'SystemAssigned','None')]"
-      },
       "copy": {
         "name": "lbSecureMGMTLoop",
         "count": "[parameters('numberOfInstances')]"
@@ -315,7 +318,9 @@
         "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]"
       ]
     },
+   
     {
+      
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(variables('wafVmName'), copyindex(1))]",
       "apiVersion": "[variables('computeApiVersion')]",
@@ -329,6 +334,7 @@
         "Product": "waf",
         "Publisher": "barracudanetworks"
       },
+      "identity": "[if(equals(parameters('managedIdentities'),'yes'),variables('identity'),json('null'))]",
       "properties": {
         "availabilitySet": {
           "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('WAFAVSetName'))]"
@@ -366,6 +372,72 @@
         "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrefix'), copyindex(1))]",
         "[concat('Microsoft.Compute/availabilitySets/', variables('WAFAVSetName'))]"
       ]
+    },
+      {
+      "apiVersion": "[variables('networkApiVersion')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('nsgName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "AllowHTTPInbound",
+            "properties": {
+              "description": "Allow HTTP",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AllowHTTPSInbound",
+            "properties": {
+              "description": "Allow HTTPS",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "443",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 110,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AllowUnSecureManagementAccess",
+            "properties": {
+              "description": "Allow Manangement Access",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "8000",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 120,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AllowSecureManagementAccess",
+            "properties": {
+              "description": "Allow Secure Manangement Access",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "8443",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 130,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
     }
   ]
 }
