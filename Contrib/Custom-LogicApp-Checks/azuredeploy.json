@@ -1,0 +1,1324 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "storageAccountname": {
+            "metadata": {
+                                "description": "Name of the storage account used to hold previous values."
+                            },
+            "defaultValue": "wafcompstorage1",
+            "type": "String"
+        },
+         "workflowName": {
+             "metadata": {
+                                "description": "Name of this Logic App Workflow"
+                            },
+            "defaultValue": "waftlscompare",
+            "type": "String"
+        },
+        "wafPassword": {
+            "metadata": {
+                "description": "Secure password for the WAF API access to use"
+            },
+            "type": "SecureString"
+        },
+        "wafServiceName": {
+            "metadata": {
+                "description": "Name of the WAF service that you wish to collect data on"
+            },
+            "type": "String"
+        },
+        "wafaddress": {
+            "metadata": {
+                "description": "First part of URL for WAF e.g https://myipaddress:portnumber"
+            },
+            "type": "String"
+        },
+        "connections_azuretables_name": {
+            "defaultValue": "wafazuretablesconnection",
+            "type": "String"
+        },
+        "connections_office365_name": {
+            "defaultValue": "wafoffice365connection",
+            "type": "String"
+        },
+         "notificationemailAddress": {
+             "metadata": {
+            "description": "Email address to receive notifictation of change"
+                            },
+            "type": "String"
+        },
+        
+         "TriggerInterval": {
+             "metadata": {
+            "description": "Frequency in minutes that this app triggers"
+                            },
+            "defaultValue": 15,
+            "type": "int"
+        }
+    },
+    "variables": {
+        "connections_azuretables_externalid":  "[resourceId(subscription().subscriptionId,resourceGroup().name,'Microsoft.Web/connections',parameters('connections_azuretables_name'))]",
+        "connections_office365_externalid": "[resourceId(subscription().subscriptionId,resourceGroup().name,'Microsoft.Web/connections',parameters('connections_office365_name'))]",
+        "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[parameters('storageAccountname')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": true
+                
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/tableServices",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('storageAccountname'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountname'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/tableServices/tables",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('storageAccountname'), '/default/waftable')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/tableServices', parameters('storageAccountname'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountname'))]"
+            ]
+        },
+         {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "2018-07-01-preview",
+            "name": "[parameters('connections_azuretables_name')]",
+            "location": "[resourceGroup().location]",
+            "kind": "V1",
+            "properties": {
+                "displayName": "[parameters('connections_azuretables_name')]",
+                "api": {
+                
+                 "id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/azuretables')]"
+                },
+                "parameterValues": {
+                    "storageaccount": "[parameters('storageAccountName')]",
+                    "sharedkey": "[listKeys(variables('storageAccountId'), '2019-04-01').keys[0].value]"
+                }
+            }
+        },
+              {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "2018-07-01-preview",
+            "name": "[parameters('connections_office365_name')]",
+            "location": "[resourceGroup().location]",
+            "kind": "V1",
+            "properties": {
+                "displayName": "[parameters('connections_office365_name')]",
+                "customParameterValues": {},
+                "api": {
+                   // "id": "[variables('connections_office365_externalid')]"
+                   "id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/office365')]"
+                }
+            }
+        },
+                {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('workflowName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/connections', parameters('connections_office365_name'))]",
+                "[resourceId('Microsoft.Web/connections', parameters('connections_azuretables_name'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts/tableServices/tables', parameters('storageAccountname'), 'default', 'waftable')]"
+            ],
+
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        },
+                        "Password": {
+                            "defaultValue": "[parameters('wafPassword')]",
+                            "type": "SecureString"
+                        },
+                        "servicename": {
+                            "defaultValue": "[parameters('wafServicename')]",
+                            "type": "String"
+                        },
+                        "wafaddress": {
+                            "defaultValue": "[concat(parameters('wafaddress'))]",
+                            "type": "String"
+                        }
+                    },
+                    "staticResults": {
+                        "HTTP0": {
+                            "status": "Succeeded",
+                            "outputs": {
+                                "headers": {},
+                                "statusCode": "OK"
+                            }
+                        }
+                    },
+                    "triggers": {
+                        "Recurrence": {
+                            "recurrence": {
+                                "frequency": "Minute",
+                                "interval": "[parameters('TriggerInterval')]"
+                            },
+                            "type": "Recurrence"
+                        }
+                    },
+                    "actions": {
+                        "Condition": {
+                            "actions": {
+                                "Send_an_email_(V2)": {
+                                    "runAfter": {
+                                        "Set_EmailBody_True": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "body": {
+                                            "Body": "<p>@{variables('EmailBody')}</p>",
+                                            "Importance": "Low",
+                                            "Subject": "TLS Matching for  @{parameters('servicename')}",
+                                            "To": "[parameters('notificationemailAddress')]"
+                                        },
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['office365']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "path": "/v2/Mail"
+                                    }
+                                },
+                                "Set_EmailBody_True": {
+                                    "runAfter": {},
+                                    "type": "SetVariable",
+                                    "inputs": {
+                                        "name": "EmailBody",
+                                        "value": "<p> TLS settings remain the same\n<table>\n<tr>><td>Setting</td><td>Current WAF </td><td>Previous State</td></tr>\n<tr><td>TLS1</td><td>@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1']}</td><td>@{body('TableData')?['tls1']}</td></tr>\n<tr><td>TLS1.1</td><td>\n@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-1']} </td><td>@{body('TableData')?['tls1_1']}</td></tr>\n<tr><td>TLS1.2</td><td>\n@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-2']}</td><td>@{body('TableData')?['tls1_2']}</td></tr>\n<tr><td>TLS1.3</td><td>\n@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-3']}</td><td>@{body('TableData')?['tls1_3']}</td></tr>\n</table>"
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "LatestFromWAF": [
+                                    "Succeeded"
+                                ],
+                                "TableData": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "else": {
+                                "actions": {
+                                    "Send_an_email_(V2)_2": {
+                                        "runAfter": {
+                                            "Set_EmailBody_False": [
+                                                "Succeeded"
+                                            ]
+                                        },
+                                        "type": "ApiConnection",
+                                        "inputs": {
+                                            "body": {
+                                                "Body": "<p>@{variables('EmailBody')}</p>",
+                                                "Importance": "High",
+                                                "Subject": "A change of TLS settings was found for @{parameters('servicename')}",
+                                                "To": "[parameters('notificationemailAddress')]"
+                                            },
+                                            "host": {
+                                                "connection": {
+                                                    "name": "@parameters('$connections')['office365']['connectionId']"
+                                                }
+                                            },
+                                            "method": "post",
+                                            "path": "/v2/Mail"
+                                        }
+                                    },
+                                    "Set_EmailBody_False": {
+                                        "runAfter": {},
+                                        "type": "SetVariable",
+                                        "inputs": {
+                                            "name": "EmailBody",
+                                            //when using the designer view the custom expressions added here will be wrong. Use the code view and this example on how to customise.
+                                            "value": "<p> TLS settings have changed\n<table>\n<tr>><td>Setting</td><td>Current WAF </td><td>Previous State</td></tr>\n<tr><td>TLS1</td><td>@{concat(body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1'])}</td><td>@{body('TableData')?['tls1']}</td></tr>\n<tr><td>TLS1.1</td><td>\n@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-1']} </td><td>@{body('TableData')?['tls1_1']}</td></tr>\n<tr><td>TLS1.2</td><td>\n@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-2']}</td><td>@{body('TableData')?['tls1_2']}</td></tr>\n<tr><td>TLS1.3</td><td>\n@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-3']}</td><td>@{body('TableData')?['tls1_3']}</td></tr>\n</table>"
+                                        }
+                                    }
+                                }
+                            },
+                            "expression": {
+                                "and": [
+                                    {
+                                        "equals": [
+                                            "@body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1']",
+                                            "@body('TableData')?['tls1']"
+                                        ]
+                                    },
+                                    {
+                                        "equals": [
+                                            "@body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-1']",
+                                            "@body('TableData')?['tls1_1']"
+                                        ]
+                                    },
+                                    {
+                                        "equals": [
+                                            "@body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-2']",
+                                            "@body('TableData')?['tls1_2']"
+                                        ]
+                                    },
+                                    {
+                                        "equals": [
+                                            "@body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-3']",
+                                            "@body('TableData')?['tls1_3']"
+                                        ]
+                                    }
+                                ]
+                            },
+                            "type": "If"
+                        },
+                        "GetAuthToken": {
+                            "runAfter": {
+                                "LogintoWAF": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@body('LogintoWAF')",
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "GetServices": {
+                            "runAfter": {
+                                "GetAuthToken": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Http",
+                            "inputs": {
+                                "authentication": {
+                                    "type": "Raw",
+                                    "value": "@concat('Basic ',base64(body('GetAuthToken')?['token']))"
+                                },
+                                "method": "GET",
+                                "uri": "@{parameters('wafaddress')}/restapi/v3/services/@{parameters('servicename')}"
+                            }
+                        },
+                        "Get_entity": {
+                            "runAfter": {
+                                "Initialize_variable": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuretables']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/Tables/@{encodeURIComponent('waftable')}/entities(PartitionKey='@{encodeURIComponent('0')}',RowKey='@{encodeURIComponent(parameters('servicename'))}')",
+                                "queries": {
+                                    "$select": "tls1,tls1_1,tls1_2,tls1_3"
+                                }
+                            }
+                        },
+                        "Initialize_variable": {
+                            "runAfter": {},
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "EmailBody",
+                                        "type": "string"
+                                    }
+                                ]
+                            }
+                        },
+                        "Insert_or_Merge_Entity": {
+                            "runAfter": {
+                                "Condition": [
+                        "Succeeded",
+                        "Failed",
+                        "Skipped"
+                    ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "body": {
+                                    "StringField": 1,
+                                    //take a note of the LastestFromWAF inserting the parameter servicename. When using the UI this parameter is not used and the static servicename value from the earlier LastestFromWAF query will be used. Replace it for automation
+                                    "tls1": "@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1']}",
+                                    "tls1_1": "@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-1']}",
+                                    "tls1_2": "@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-2']}",
+                                    "tls1_3": "@{body('LatestFromWAF')?['data']?[parameters('servicename')]?['SSL Security']?['enable-tls-1-3']}"
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuretables']['connectionId']"
+                                    }
+                                },
+                                "method": "patch",
+                                //note the table RowKey is based on the parameter value. 
+                                "path": "/Tables/@{encodeURIComponent('waftable')}/entities(PartitionKey='@{encodeURIComponent('0')}',RowKey='@{encodeURIComponent(parameters('servicename'))}')"
+                            }
+                        },
+                        "LatestFromWAF": {
+                            "runAfter": {
+                                "GetServices": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@body('GetServices')",
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "service": {
+                                                    "properties": {
+                                                        "Adaptive Profiling": {
+                                                            "properties": {
+                                                                "content-types": {
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "type": "array"
+                                                                },
+                                                                "ignore-parameters": {
+                                                                    "type": "array"
+                                                                },
+                                                                "navigation-parameters": {
+                                                                    "type": "array"
+                                                                },
+                                                                "request-learning": {
+                                                                    "type": "string"
+                                                                },
+                                                                "response-learning": {
+                                                                    "type": "string"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string"
+                                                                },
+                                                                "trusted-host-group": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Advanced Client Analysis": {
+                                                            "properties": {
+                                                                "advanced-analysis": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Advanced Configuration": {
+                                                            "properties": {
+                                                                "accept-list": {
+                                                                    "type": "array"
+                                                                },
+                                                                "accept-list-status": {
+                                                                    "type": "string"
+                                                                },
+                                                                "ddos-exception-list": {
+                                                                    "type": "array"
+                                                                },
+                                                                "enable-fingerprint": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-http2": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-proxy-protocol": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-vdi": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-web-application-firewall": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-websocket": {
+                                                                    "type": "string"
+                                                                },
+                                                                "keepalive-requests": {
+                                                                    "type": "string"
+                                                                },
+                                                                "ntlm-ignore-extra-data": {
+                                                                    "type": "string"
+                                                                },
+                                                                "proxy-list": {
+                                                                    "type": "array"
+                                                                },
+                                                                "proxy-list-status": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Authentication": {
+                                                            "properties": {
+                                                                "access-denied-page": {
+                                                                    "type": "string"
+                                                                },
+                                                                "action": {
+                                                                    "type": "string"
+                                                                },
+                                                                "attribute-format": {
+                                                                    "type": "array"
+                                                                },
+                                                                "attribute-id": {
+                                                                    "type": "array"
+                                                                },
+                                                                "attribute-name": {
+                                                                    "type": "array"
+                                                                },
+                                                                "attribute-type": {
+                                                                    "type": "array"
+                                                                },
+                                                                "authentication-service": {
+                                                                    "type": "string"
+                                                                },
+                                                                "challenge-prompt-field": {
+                                                                    "type": "string"
+                                                                },
+                                                                "challenge-user-field": {
+                                                                    "type": "string"
+                                                                },
+                                                                "cookie-domain": {
+                                                                    "type": "string"
+                                                                },
+                                                                "cookie-path": {
+                                                                    "type": "string"
+                                                                },
+                                                                "count-window": {
+                                                                    "type": "string"
+                                                                },
+                                                                "creation-timeout": {
+                                                                    "type": "string"
+                                                                },
+                                                                "dual-authentication": {
+                                                                    "type": "string"
+                                                                },
+                                                                "dual-login-page": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-bruteforce-prevention": {
+                                                                    "type": "string"
+                                                                },
+                                                                "encryption-certificate": {
+                                                                    "type": "string"
+                                                                },
+                                                                "groups": {
+                                                                    "type": "string"
+                                                                },
+                                                                "idle-timeout": {
+                                                                    "type": "string"
+                                                                },
+                                                                "kerberos-debug-status": {
+                                                                    "type": "string"
+                                                                },
+                                                                "kerberos-enable-delegation": {
+                                                                    "type": "string"
+                                                                },
+                                                                "login-challenge-page": {
+                                                                    "type": "string"
+                                                                },
+                                                                "login-failed-page": {
+                                                                    "type": "string"
+                                                                },
+                                                                "login-page": {
+                                                                    "type": "string"
+                                                                },
+                                                                "login-processor-path": {
+                                                                    "type": "string"
+                                                                },
+                                                                "login-successful-page": {
+                                                                    "type": "string"
+                                                                },
+                                                                "logout-page": {
+                                                                    "type": "string"
+                                                                },
+                                                                "logout-processor-path": {
+                                                                    "type": "string"
+                                                                },
+                                                                "logout-successful-page": {
+                                                                    "type": "string"
+                                                                },
+                                                                "master-service": {
+                                                                    "type": "string"
+                                                                },
+                                                                "master-service-url": {
+                                                                    "type": "string"
+                                                                },
+                                                                "max-failed-attempts": {
+                                                                    "type": "string"
+                                                                },
+                                                                "password-expired-url": {
+                                                                    "type": "string"
+                                                                },
+                                                                "post-processor-path": {
+                                                                    "type": "string"
+                                                                },
+                                                                "saml-logout-url": {
+                                                                    "type": "string"
+                                                                },
+                                                                "secondary-authentication-service": {
+                                                                    "type": "string"
+                                                                },
+                                                                "send-domain-name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "service-provider-display-name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "service-provider-entity-id": {
+                                                                    "type": "string"
+                                                                },
+                                                                "service-provider-org-name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "service-provider-org-url": {
+                                                                    "type": "string"
+                                                                },
+                                                                "session-timeout-for-activesync": {
+                                                                    "type": "string"
+                                                                },
+                                                                "signing-certificate": {
+                                                                    "type": "string"
+                                                                },
+                                                                "sso-cookie-update-interval": {
+                                                                    "type": "string"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Basic Security": {
+                                                            "properties": {
+                                                                "client-ip-addr-header": {
+                                                                    "type": "string"
+                                                                },
+                                                                "ignore-case": {
+                                                                    "type": "string"
+                                                                },
+                                                                "mode": {
+                                                                    "type": "string"
+                                                                },
+                                                                "rate-control-pool": {
+                                                                    "type": "string"
+                                                                },
+                                                                "rate-control-status": {
+                                                                    "type": "string"
+                                                                },
+                                                                "trusted-hosts-action": {
+                                                                    "type": "string"
+                                                                },
+                                                                "trusted-hosts-group": {
+                                                                    "type": "string"
+                                                                },
+                                                                "web-firewall-log-level": {
+                                                                    "type": "string"
+                                                                },
+                                                                "web-firewall-policy": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Caching": {
+                                                            "properties": {
+                                                                "cache-negative-response": {
+                                                                    "type": "string"
+                                                                },
+                                                                "expiry-age": {
+                                                                    "type": "string"
+                                                                },
+                                                                "file-extensions": {
+                                                                    "type": "array"
+                                                                },
+                                                                "ignore-request-headers": {
+                                                                    "type": "string"
+                                                                },
+                                                                "ignore-response-headers": {
+                                                                    "type": "string"
+                                                                },
+                                                                "max-size": {
+                                                                    "type": "string"
+                                                                },
+                                                                "min-size": {
+                                                                    "type": "string"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Captcha Settings": {
+                                                            "properties": {
+                                                                "recaptcha-domain": {
+                                                                    "type": "array"
+                                                                },
+                                                                "recaptcha-type": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Clickjacking": {
+                                                            "properties": {
+                                                                "allowed-origin": {
+                                                                    "type": "string"
+                                                                },
+                                                                "options": {
+                                                                    "type": "string"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Comment Spam": {
+                                                            "properties": {
+                                                                "exception-patterns": {
+                                                                    "type": "array"
+                                                                },
+                                                                "parameter": {
+                                                                    "type": "array"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Compression": {
+                                                            "properties": {
+                                                                "content-types": {
+                                                                    "type": "array"
+                                                                },
+                                                                "min-size": {
+                                                                    "type": "string"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string"
+                                                                },
+                                                                "unknown-content-types": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Exception Profiling": {
+                                                            "properties": {
+                                                                "exception-profiling-learn-from-trusted-host": {
+                                                                    "type": "string"
+                                                                },
+                                                                "exception-profiling-level": {
+                                                                    "type": "string"
+                                                                },
+                                                                "exception-profiling-trusted-host-group": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "FTP": {
+                                                            "properties": {
+                                                                "allowed-verb-status": {
+                                                                    "type": "string"
+                                                                },
+                                                                "allowed-verbs": {
+                                                                    "type": "array"
+                                                                },
+                                                                "attack-prevention-status": {
+                                                                    "type": "string"
+                                                                },
+                                                                "pasv-ip-address": {
+                                                                    "type": "string"
+                                                                },
+                                                                "pasv-ports": {
+                                                                    "type": "array"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "IP Reputation": {
+                                                            "properties": {
+                                                                "anonymous-proxy": {
+                                                                    "type": "string"
+                                                                },
+                                                                "apply-policy-at": {
+                                                                    "type": "string"
+                                                                },
+                                                                "barracuda-reputation-blocklist": {
+                                                                    "type": "string"
+                                                                },
+                                                                "block-unclassified-ips": {
+                                                                    "type": "string"
+                                                                },
+                                                                "check-registered-country": {
+                                                                    "type": "string"
+                                                                },
+                                                                "custom-blacklisted-ip-status": {
+                                                                    "type": "string"
+                                                                },
+                                                                "datacenter-ip": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-ip-reputation-filter": {
+                                                                    "type": "string"
+                                                                },
+                                                                "fake-crawler": {
+                                                                    "type": "string"
+                                                                },
+                                                                "geo-pool": {
+                                                                    "type": "string"
+                                                                },
+                                                                "geoip-action": {
+                                                                    "type": "string"
+                                                                },
+                                                                "geoip-enable-logging": {
+                                                                    "type": "string"
+                                                                },
+                                                                "known-http-attack-sources": {
+                                                                    "type": "string"
+                                                                },
+                                                                "known-ssh-attack-sources": {
+                                                                    "type": "string"
+                                                                },
+                                                                "public-proxy": {
+                                                                    "type": "string"
+                                                                },
+                                                                "satellite-provider": {
+                                                                    "type": "string"
+                                                                },
+                                                                "tor-nodes": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Instant SSL": {
+                                                            "properties": {
+                                                                "secure-site-domain": {
+                                                                    "type": "array"
+                                                                },
+                                                                "sharepoint-rewrite-support": {
+                                                                    "type": "string"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Load Balancing": {
+                                                            "properties": {
+                                                                "algorithm": {
+                                                                    "type": "string"
+                                                                },
+                                                                "cookie-age": {
+                                                                    "type": "string"
+                                                                },
+                                                                "failover-method": {
+                                                                    "type": "string"
+                                                                },
+                                                                "header-name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "parameter-name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "persistence-cookie-domain": {
+                                                                    "type": "string"
+                                                                },
+                                                                "persistence-cookie-name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "persistence-cookie-path": {
+                                                                    "type": "string"
+                                                                },
+                                                                "persistence-idle-timeout": {
+                                                                    "type": "string"
+                                                                },
+                                                                "persistence-method": {
+                                                                    "type": "string"
+                                                                },
+                                                                "source-ip-netmask": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Mask Sensitive Data": {
+                                                            "properties": {
+                                                                "sensitive-parameter-names": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Referer Spam": {
+                                                            "properties": {
+                                                                "custom-blocked-patterns": {
+                                                                    "type": "array"
+                                                                },
+                                                                "exception-patterns": {
+                                                                    "type": "array"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Rule Group": {
+                                                            "properties": {},
+                                                            "type": "object"
+                                                        },
+                                                        "Rule Group count": {
+                                                            "type": "integer"
+                                                        },
+                                                        "SSL Client Authentication": {
+                                                            "properties": {
+                                                                "client-authentication": {
+                                                                    "type": "string"
+                                                                },
+                                                                "client-certificate-for-rule": {
+                                                                    "type": "array"
+                                                                },
+                                                                "enforce-client-certificate": {
+                                                                    "type": "string"
+                                                                },
+                                                                "trusted-certificates": {
+                                                                    "type": "array"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "SSL OCSP": {
+                                                            "properties": {
+                                                                "certificate": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable": {
+                                                                    "type": "string"
+                                                                },
+                                                                "responder-url": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "SSL Security": {
+                                                            "properties": {
+                                                                "certificate": {
+                                                                    "type": "string"
+                                                                },
+                                                                "ciphers": {
+                                                                    "type": "string"
+                                                                },
+                                                                "domain": {
+                                                                    "type": "array"
+                                                                },
+                                                                "ecdsa-certificate": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-hsts": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-pfs": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-sni": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-ssl-3": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-strict-sni-check": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-tls-1": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-tls-1-1": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-tls-1-2": {
+                                                                    "type": "string"
+                                                                },
+                                                                "enable-tls-1-3": {
+                                                                    "type": "string"
+                                                                },
+                                                                "hsts-max-age": {
+                                                                    "type": "string"
+                                                                },
+                                                                "include-hsts-sub-domains": {
+                                                                    "type": "string"
+                                                                },
+                                                                "override-ciphers-ssl3": {
+                                                                    "type": "array"
+                                                                },
+                                                                "override-ciphers-tls-1": {
+                                                                    "type": "array"
+                                                                },
+                                                                "override-ciphers-tls-1-1": {
+                                                                    "type": "array"
+                                                                },
+                                                                "selected-ciphers": {
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "type": "array"
+                                                                },
+                                                                "sni-certificate": {
+                                                                    "type": "array"
+                                                                },
+                                                                "sni-ecdsa-certificate": {
+                                                                    "type": "array"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Server": {
+                                                            "properties": {
+                                                                "data": {
+                                                                    "properties": {
+                                                                        "liferay": {
+                                                                            "properties": {
+                                                                                "address-version": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "comments": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "hostname": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "identifier": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "ip-address": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "name": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "port": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "status": {
+                                                                                    "type": "string"
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        }
+                                                                    },
+                                                                    "type": "object"
+                                                                },
+                                                                "object": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Server count": {
+                                                            "type": "integer"
+                                                        },
+                                                        "Session Tracking": {
+                                                            "properties": {
+                                                                "exception-clients": {
+                                                                    "type": "string"
+                                                                },
+                                                                "identifiers": {
+                                                                    "type": "array"
+                                                                },
+                                                                "max-interval": {
+                                                                    "type": "string"
+                                                                },
+                                                                "max-sessions-per-ip": {
+                                                                    "type": "string"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Slow Client Attack Prevention": {
+                                                            "properties": {
+                                                                "data-transfer-rate": {
+                                                                    "type": "string"
+                                                                },
+                                                                "exception-clients": {
+                                                                    "type": "string"
+                                                                },
+                                                                "incremental-request-timeout": {
+                                                                    "type": "string"
+                                                                },
+                                                                "incremental-response-timeout": {
+                                                                    "type": "string"
+                                                                },
+                                                                "max-request-timeout": {
+                                                                    "type": "string"
+                                                                },
+                                                                "max-response-timeout": {
+                                                                    "type": "string"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "URL Encryption": {
+                                                            "properties": {
+                                                                "status": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "Website Profile": {
+                                                            "properties": {
+                                                                "allowed-domains": {
+                                                                    "type": "array"
+                                                                },
+                                                                "exclude-url-patterns": {
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "type": "array"
+                                                                },
+                                                                "include-url-patterns": {
+                                                                    "type": "array"
+                                                                },
+                                                                "mode": {
+                                                                    "type": "string"
+                                                                },
+                                                                "strict-profile-check": {
+                                                                    "type": "string"
+                                                                },
+                                                                "use-profile": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "address-version": {
+                                                            "type": "string"
+                                                        },
+                                                        "app-id": {
+                                                            "type": "string"
+                                                        },
+                                                        "comments": {
+                                                            "type": "string"
+                                                        },
+                                                        "enable-access-logs": {
+                                                            "type": "string"
+                                                        },
+                                                        "group": {
+                                                            "type": "string"
+                                                        },
+                                                        "ip-address": {
+                                                            "type": "string"
+                                                        },
+                                                        "mask": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "port": {
+                                                            "type": "string"
+                                                        },
+                                                        "session-timeout": {
+                                                            "type": "string"
+                                                        },
+                                                        "status": {
+                                                            "type": "string"
+                                                        },
+                                                        "type": {
+                                                            "type": "string"
+                                                        },
+                                                        "vsite": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "object": {
+                                            "type": "string"
+                                        },
+                                        "token": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "LogintoWAF": {
+                            "runAfter": {
+                                "Initialize_variable": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Http",
+                            "inputs": {
+                                "body": {
+                                    "password": "@{parameters('Password')}",
+                                    "username": "admin"
+                                },
+                                "method": "POST",
+                                "uri": "@{parameters('wafaddress')}/restapi/v3/login"
+                            },
+                            "runtimeConfiguration": {
+                                "staticResult": {
+                                    "staticResultOptions": "Disabled",
+                                    "name": "HTTP0"
+                                }
+                            }
+                        },
+                        "TableData": {
+                            "runAfter": {
+                                "Get_entity": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@body('Get_entity')",
+                                "schema": {
+                                    "properties": {
+                                        "body": {
+                                            "properties": {
+                                                "odata.etag": {
+                                                    "type": "string"
+                                                },
+                                                "odata.metadata": {
+                                                    "type": "string"
+                                                },
+                                                "tls1": {
+                                                    "type": "string"
+                                                },
+                                                "tls1_1": {
+                                                    "type": "string"
+                                                },
+                                                "tls1_2": {
+                                                    "type": "string"
+                                                },
+                                                "tls1_3": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "headers": {
+                                            "properties": {
+                                                "Cache-Control": {
+                                                    "type": "string"
+                                                },
+                                                "Content-Length": {
+                                                    "type": "string"
+                                                },
+                                                "Content-Type": {
+                                                    "type": "string"
+                                                },
+                                                "Date": {
+                                                    "type": "string"
+                                                },
+                                                "ETag": {
+                                                    "type": "string"
+                                                },
+                                                "Timing-Allow-Origin": {
+                                                    "type": "string"
+                                                },
+                                                "Transfer-Encoding": {
+                                                    "type": "string"
+                                                },
+                                                "X-Content-Type-Options": {
+                                                    "type": "string"
+                                                },
+                                                "x-ms-apihub-cached-response": {
+                                                    "type": "string"
+                                                },
+                                                "x-ms-request-id": {
+                                                    "type": "string"
+                                                },
+                                                "x-ms-version": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "statusCode": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "azuretables": {
+                                "connectionId": "[variables('connections_azuretables_externalid')]",
+                                "connectionName": "[parameters('connections_azuretables_name')]",
+                                "id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/azuretables')]"
+                            },
+                            "office365": {
+                                "connectionId": "[variables('connections_office365_externalid')]",
+                                "connectionName": "[parameters('connections_office365_name')]",
+                                "id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/office365')]"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

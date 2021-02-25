@@ -1,0 +1,33 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "wafPassword": {
+        "value": "GEN-PASSWORD"
+      },
+      "storageAccountname": {
+        "value": "waflogicstorage1"
+      },
+      "workflowName": {
+          "value": "waftlscompare"
+      },
+      "wafServiceName": {
+        "value": "mywafservice"
+      },
+      "wafaddress": {
+        "value": "https://<mywafip>:<port>"
+      },
+      "connections_azuretables_name": {
+        "value": "wafazuretablesconnection"
+      },
+      "connections_office365_name": {
+        "value": "wafoffice365connection"
+      },
+      "notificationemailAddress": {
+        "value": "myemail@domain.com"
+      },
+      "TriggerInterval": {
+        "value": 15
+      }
+    }
+  }
