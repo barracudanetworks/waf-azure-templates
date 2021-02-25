@@ -47,8 +47,8 @@ You will need to configure the WAF services to deliver the sites which are arran
 |DVWA| 1000 | http://`<publiclbip>`:1000/login.php | http://www.dvwa.co.uk/ |
 |Mutillidae | 2000 | http://`<publiclbip>`:2000/ |http://www.irongeek.com/i.php?page=mutillidae/mutillidae-deliberately-vulnerable-php-owasp-top-10 |
 |WebGoat | 3000 | http://`<publiclbip>`:1000/ |https://owasp.org/www-project-webgoat/|
-|BWAPP | 4000 | not currently loading | |
-|JuiceShop | 5000 | not currently loading | https://owasp.org/www-project-juice-shop/|
+|BWAPP | 4000 | http://`<publiclbip>`:4000/ | |
+|JuiceShop | 5000 | http://`<publiclbip>`:5000/ | https://owasp.org/www-project-juice-shop/|
 |Altoro | 6001 | http://`<publiclbip>`:6001/ ||	
 |HTTPBin | 7000 | not currently loading || 	
 |Hackazon | 8000 | http://`<publiclbip>`:8000/ ||

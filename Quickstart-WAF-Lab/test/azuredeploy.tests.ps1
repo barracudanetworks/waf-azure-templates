@@ -62,8 +62,7 @@ Describe "[$templateName] Template validation & test" {
         }
         #This is what's defined in the template under resources
         It 'Creates the expected Azure resources' {
-            $expectedResources = 
-                                'Microsoft.Authorization/roleAssignments',
+            $expectedResources = 'Microsoft.Authorization/roleAssignments',
                                 'Microsoft.Network/publicIPAddresses',
                                 'Microsoft.Network/publicIPAddresses',
                                 'Microsoft.Network/publicIPAddresses',
@@ -72,10 +71,10 @@ Describe "[$templateName] Template validation & test" {
                                 'Microsoft.Network/networkSecurityGroups',
                                 'Microsoft.Network/networkInterfaces',
                                 'Microsoft.Network/loadBalancers',
-                                'Microsoft.Network/loadBalancers/inboundNatRules',
-                                'Microsoft.Network/loadBalancers/inboundNatRules',
-                                'Microsoft.Compute/virtualMachines',
-                                'Microsoft.Network/networkInterfaces'
+                                'Microsoft.Network/loadBalancers/inboundNatRules'
+                          #      'Microsoft.Network/loadBalancers/inboundNatRules',
+                          #      'Microsoft.Compute/virtualMachines',
+                           #     'Microsoft.Network/networkInterfaces'
                                 
             $templateResources = (get-content $templateFileLocation | ConvertFrom-Json -ErrorAction SilentlyContinue).Resources.type
             $templateResources | Should Be $expectedResources

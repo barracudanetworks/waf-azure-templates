@@ -1,9 +1,11 @@
-# Barracuda Web Application Firewall for Azure - Custom in Availability Set
+# Barracuda Web Application Firewall for Azure - Custom 2 NIC in Availability Set
 
 ## Introduction
 This Azure Resource Manager template will deploy a pair (or whatever number you request) of Barracuda Web Application Firewalls into your selected Virtual Network using the Availability Set method for resiliency
 
 ## Prerequisites
+This 2 NIC template does expect you to have an existing VNET containing two Subnets prepared for the WAF, one External and one Internal
+
 The solution does a check of the template when you use the provided scripts. It does require that [Programmatic Deployment](https://azure.microsoft.com/en-us/blog/working-with-marketplace-images-on-azure-resource-manager/) is enabled for the Barracuda Web Application Firewall BYOL or PAYG images. Barracuda recommends use of **D**, **D_v2**, **F** or newer series. 
 
 You can enable programatic deployment via Powershell using the Cloud Shell feature in the portal. Below are two powershell examples for byol and hourly, please adapt as required to your version of powershell and byol or hourly license requirement.
@@ -24,10 +26,10 @@ The package provides a deploy.ps1 and deploy.sh for Powershell or Azure CLI base
 
 ## Deployed resources
 Following resources will be created by the template:
-- One Azure VNET with 2 subnets (1 for the WAF and a second for the web server)
 - One external Basic Azure Load Balancer containing the deployed virtual machines with a public IP and services for HTTP and HTTPS
 - Two Barracuda Web Application Firewall virtual machines
 - Both WAF systems are deployed in an Availability Set
+
 
 
 

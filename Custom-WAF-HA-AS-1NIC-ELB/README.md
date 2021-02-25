@@ -1,9 +1,13 @@
 # Barracuda Web Application Firewall for Azure - Custom in Availability Set
 
 ## Introduction
-This Azure Resource Manager template will deploy a pair (or whatever number you request) of Barracuda Web Application Firewalls into your selected Virtual Network using the Availability Set method for resiliency
+This Azure Resource Manager template will deploy a pair (or whatever number you request) of Barracuda Web Application Firewalls into your selected Virtual Network using the Availability Set method for resiliency.
 
 ## Prerequisites
+This Custom template does expect you to have an existing VNET containing a Subnets prepared for the WAF.
+
+If you choose to set the ManagedIdentity parameter to "yes" then you will need sufficient permissions within Azure to create systems with managed indentities.
+
 The solution does a check of the template when you use the provided scripts. It does require that [Programmatic Deployment](https://azure.microsoft.com/en-us/blog/working-with-marketplace-images-on-azure-resource-manager/) is enabled for the Barracuda Web Application Firewall BYOL or PAYG images. Barracuda recommends use of **D**, **D_v2**, **F** or newer series. 
 
 You can enable programatic deployment via Powershell using the Cloud Shell feature in the portal. Below are two powershell examples for byol and hourly, please adapt as required to your version of powershell and byol or hourly license requirement.
@@ -11,7 +15,7 @@ You can enable programatic deployment via Powershell using the Cloud Shell featu
 `Get-AzMarketplaceTerms -Publisher "barracudanetworks" -Product "waf" -Name "byol" | Set-AzMarketplaceTerms -Accept`
 `Get-AzureRmMarketplaceTerms -Publisher "barracudanetworks" -Product "waf" -Name "hourly" | Set-AzureRmMarketplaceTerms -Accept`
 
-'az vm image terms accept --urn barracudanetworks:waf:byol:*'
+`az vm image terms accept --urn barracudanetworks:waf:byol:*`
 
 ## Deployment
 

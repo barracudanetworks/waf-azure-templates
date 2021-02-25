@@ -11,7 +11,7 @@ You can enable programatic deployment via Powershell using the Cloud Shell featu
 `Get-AzMarketplaceTerms -Publisher "barracudanetworks" -Product "waf" -Name "byol" | Set-AzMarketplaceTerms -Accept`
 `Get-AzureRmMarketplaceTerms -Publisher "barracudanetworks" -Product "waf" -Name "hourly" | Set-AzureRmMarketplaceTerms -Accept`
 
-'az vm image terms accept --urn barracudanetworks:waf:byol:*'
+`az vm image terms accept --urn barracudanetworks:waf:byol:*`
 
 
 ## Deployment

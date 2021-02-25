@@ -1,50 +1,38 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
-<test-results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="nunit_schema_2.5.xsd" name="Pester" total="1" errors="0" failures="1" not-run="0" inconclusive="0" ignored="0" skipped="0" invalid="0" date="2021-02-24" time="15:20:42">
+<test-results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="nunit_schema_2.5.xsd" name="Pester" total="9" errors="0" failures="1" not-run="0" inconclusive="0" ignored="0" skipped="0" invalid="0" date="2021-02-25" time="09:37:15">
   <environment clr-version="Unknown" user="gallen" machine-name="SLZ-GALLEN-LT" os-version="10.0.19041" nunit-version="2.5.8.0" user-domain="EU" platform="Microsoft Windows 10 Enterprise|C:\WINDOWS|\Device\Harddisk0\Partition4" cwd="C:\Store\waf-azure-templates\Quickstart-WAF-Lab" />
   <culture-info current-culture="en-GB" current-uiculture="en-US" />
-  <test-suite type="TestFixture" name="Pester" executed="True" result="Failure" success="False" time="0.2284" asserts="0" description="Pester">
+  <test-suite type="TestFixture" name="Pester" executed="True" result="Failure" success="False" time="547.1092" asserts="0" description="Pester">
     <results>
-      <test-suite type="TestFixture" name="C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1" executed="True" result="Failure" success="False" time="0.2284" asserts="0" description="C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1">
+      <test-suite type="TestFixture" name="C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1" executed="True" result="Failure" success="False" time="547.1092" asserts="0" description="C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1">
         <results>
-          <test-case description="Error occurred in test script 'C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1'" name="Error occurred in test script 'C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1'" time="0" asserts="0" success="False" result="Failure" executed="True">
-            <failure>
-              <message>At C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1:85 char:43
-+             $expectedTemplateParameters = 'adminPassword',
-+                                           ~~~~~~~~~~~~~~~
-The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a property.
-
-At C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1:86 char:44
-+                                            'dnsNameForLBIP',
-+                                            ~~~~~~~~~~~~~~~~
-The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a property.
-
-At C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1:87 char:44
-+                                            'license',
-+                                            ~~~~~~~~~
-The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a property.
-
-At C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1:88 char:44
-+                                            'managedIdentities',
-+                                            ~~~~~~~~~~~~~~~~~~~
-The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a property.
-
-At C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1:89 char:44
-+                                            'numberofInstances',
-+                                            ~~~~~~~~~~~~~~~~~~~
-The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a property.
-
-At C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1:90 char:44
-+                                            'prefix',
-+                                            ~~~~~~~~
-The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a property.
-
-At C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1:91 char:44
-+                                            'vmSize',
-+                                            ~~~~~~~~
-The assignment expression is not valid. The input to an assignment operator must be an object that is able to accept assignments, such as a variable or a property.</message>
-              <stack-trace>at &lt;ScriptBlock&gt;, C:\Users\gallen\AppData\Local\Temp\Pester-master\Pester.psm1: line 1111</stack-trace>
-            </failure>
-          </test-case>
+          <test-suite type="TestFixture" name="[Quickstart-WAF-Lab] Template validation &amp; test" executed="True" result="Failure" success="False" time="547.0796" asserts="0" description="[Quickstart-WAF-Lab] Template validation &amp; test">
+            <results>
+              <test-suite type="TestFixture" name="[Quickstart-WAF-Lab] Template validation" executed="True" result="Failure" success="False" time="0.6052" asserts="0" description="[Quickstart-WAF-Lab] Template validation">
+                <results>
+                  <test-case description="Has a JSON template" name="[Quickstart-WAF-Lab] Template validation &amp; test.[Quickstart-WAF-Lab] Template validation.Has a JSON template" time="0.0092" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Has a parameters file" name="[Quickstart-WAF-Lab] Template validation &amp; test.[Quickstart-WAF-Lab] Template validation.Has a parameters file" time="0.0391" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Has a metadata file" name="[Quickstart-WAF-Lab] Template validation &amp; test.[Quickstart-WAF-Lab] Template validation.Has a metadata file" time="0.0042" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Converts from JSON and has the expected properties" name="[Quickstart-WAF-Lab] Template validation &amp; test.[Quickstart-WAF-Lab] Template validation.Converts from JSON and has the expected properties" time="0.0997" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Creates the expected Azure resources" name="[Quickstart-WAF-Lab] Template validation &amp; test.[Quickstart-WAF-Lab] Template validation.Creates the expected Azure resources" time="0.0608" asserts="0" success="False" result="Failure" executed="True">
+                    <failure>
+                      <message>Expected @('Microsoft.Authorization/roleAssignments', 'Microsoft.Network/publicIPAddresses', 'Microsoft.Network/publicIPAddresses', 'Microsoft.Network/publicIPAddresses', 'Microsoft.Compute/availabilitySets', 'Microsoft.Network/virtualNetworks', 'Microsoft.Network/networkSecurityGroups', 'Microsoft.Network/networkInterfaces', 'Microsoft.Network/loadBalancers', 'Microsoft.Network/loadBalancers/inboundNatRules'), but got @('Microsoft.Authorization/roleAssignments', 'Microsoft.Network/publicIPAddresses', 'Microsoft.Network/publicIPAddresses', 'Microsoft.Network/publicIPAddresses', 'Microsoft.Compute/availabilitySets', 'Microsoft.Network/virtualNetworks', 'Microsoft.Network/networkSecurityGroups', 'Microsoft.Network/networkInterfaces', 'Microsoft.Network/loadBalancers', 'Microsoft.Network/loadBalancers/inboundNatRules').</message>
+                      <stack-trace>at &lt;ScriptBlock&gt;, C:\Store\waf-azure-templates\Quickstart-WAF-Lab\test\azuredeploy.tests.ps1: line 81
+81:             $templateResources | Should Be $expectedResources</stack-trace>
+                    </failure>
+                  </test-case>
+                  <test-case description="Contains the expected parameters" name="[Quickstart-WAF-Lab] Template validation &amp; test.[Quickstart-WAF-Lab] Template validation.Contains the expected parameters" time="0.0825" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="[Quickstart-WAF-Lab] Template test deployment" executed="True" result="Success" success="True" time="546.334" asserts="0" description="[Quickstart-WAF-Lab] Template test deployment">
+                <results>
+                  <test-case description="Test Deployment of ARM template azuredeploy.json with parameter file azuredeploy.parameters.json" name="[Quickstart-WAF-Lab] Template validation &amp; test.[Quickstart-WAF-Lab] Template test deployment.Test Deployment of ARM template azuredeploy.json with parameter file azuredeploy.parameters.json" time="6.6862" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Deployment of ARM template azuredeploy.json with parameter file azuredeploy.parameters.json" name="[Quickstart-WAF-Lab] Template validation &amp; test.[Quickstart-WAF-Lab] Template test deployment.Deployment of ARM template azuredeploy.json with parameter file azuredeploy.parameters.json" time="135.6471" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Deployment in Azure validation" name="[Quickstart-WAF-Lab] Template validation &amp; test.[Quickstart-WAF-Lab] Template test deployment.Deployment in Azure validation" time="1.5946" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
+            </results>
+          </test-suite>
         </results>
       </test-suite>
     </results>

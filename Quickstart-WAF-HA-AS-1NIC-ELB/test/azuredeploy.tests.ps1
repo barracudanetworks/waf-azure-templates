@@ -71,6 +71,7 @@ Describe "[$templateName] Template validation & test" {
                                 'Microsoft.Network/networkInterfaces',
                                 'Microsoft.Network/loadBalancers',
                                 'Microsoft.Network/loadBalancers/inboundNatRules',
+                                'Microsoft.Network/loadBalancers/inboundNatRules',
                                 'Microsoft.Compute/virtualMachines'
             $templateResources = (get-content $templateFileLocation | ConvertFrom-Json -ErrorAction SilentlyContinue).Resources.type
             $templateResources | Should Be $expectedResources
