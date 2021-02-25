@@ -616,6 +616,34 @@
         "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]"
       ]
     },
+     {
+      "name": "[variables('webVMNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('vNetName'))]"
+      ],
+      "tags": {
+        "displayName": "webVMNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('vmSubnetRef')]"
+              },
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('vmpublicIPAddressName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
     {
       "type": "Microsoft.Network/loadBalancers/inboundNatRules",
       "name": "[concat(variables('loadBalancerName'),'/',variables('wafVmName'), copyindex(1),'-SecureMGMT',copyIndex(1))]",
@@ -637,6 +665,7 @@
         "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]"
       ]
     },
+    
     {
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(variables('wafVmName'), copyindex(1))]",
@@ -689,35 +718,6 @@
         "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrefix'), copyindex(1))]",
         "[concat('Microsoft.Compute/availabilitySets/', variables('WAFAVSetName'))]"
       ]
-    },
-
-    {
-      "name": "[variables('webVMNicName')]",
-      "type": "Microsoft.Network/networkInterfaces",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2016-03-30",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('vNetName'))]"
-      ],
-      "tags": {
-        "displayName": "webVMNic"
-      },
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig1",
-            "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "subnet": {
-                "id": "[variables('vmSubnetRef')]"
-              },
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('vmpublicIPAddressName'))]"
-              }
-            }
-          }
-        ]
-      }
     },
     {
       "type": "Microsoft.Compute/virtualMachines",
