@@ -23,6 +23,7 @@ In this repository you will find Azure Resource Manager (ARM) templates to assis
 | ![Build status](https://dev.azure.com/gallen0262/cudasedevops/_apis/build/status/Custom-WAF-HA-AZ-1NIC-ELB-STD) | [Custom-WAF-HA-AZ-1NIC-ELB-STD](https://github.com/barracudanetworks/waf-azure-templates/tree/master/Custom-WAF-HA-AZ-1NIC-ELB-STD) | - | X | - | X | X | X | X | - | -
 | | [WAF-LogAnalytics-Dashboard](https://github.com/barracudanetworks/waf-azure-templates/tree/master/WAD-LogAnalytics-Dashboard) | - | - | - |- | - | -| - | - | -
 | | [Custom-WAF-IPv6](https://github.com/barracudanetworks/waf-azure-templates/tree/master/Custom-WAF-IPv6) | - | - | - |- | - | -| - | - | X
+
 More templates can be found within the Contrib directory.
 
 
